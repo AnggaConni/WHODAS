@@ -3,647 +3,942 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skrining Klasifikasi Ragam Disabilitas</title>
-    
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- Chart.js -->
+    <title>Skrining Disabilitas — WG-SS & WHODAS 2.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        // Tema warna baru: Indigo / Purple untuk membedakan dengan WHODAS
-                        brand: {
-                            50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe', 
-                            300: '#a5b4fc', 400: '#818cf8', 500: '#6366f1', 
-                            600: '#4f46e5', 700: '#4338ca', 800: '#3730a3', 900: '#312e81',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        :root {
+            --ink: #1a1a2e;
+            --ink-mid: #3d3d5c;
+            --ink-soft: #6b7280;
+            --ink-muted: #9ca3af;
+            --surface: #ffffff;
+            --surface-2: #f8f7f5;
+            --surface-3: #f0ede8;
+            --accent: #1a1a2e;
+            --accent-2: #4338ca;
+            --line: #e5e2dc;
+            --green: #059669;
+            --yellow: #d97706;
+            --orange: #ea580c;
+            --red: #dc2626;
+            --tag-green: #d1fae5;
+            --tag-yellow: #fef3c7;
+            --tag-red: #fee2e2;
+
+            /* Module accent colors */
+            --c-sensorik: #0284c7;
+            --c-fisik: #7c3aed;
+            --c-kognitif: #b45309;
+            --c-komunikasi: #0d9488;
+            --c-mental: #be185d;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'DM Sans', sans-serif; background: var(--surface-2); color: var(--ink); min-height: 100vh; }
+        h1, h2, h3, .serif { font-family: 'DM Serif Display', serif; }
+
+        /* ─── NAV ─── */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: rgba(255,255,255,0.92); backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--line);
+            height: 60px; display: flex; align-items: center;
+            padding: 0 24px; justify-content: space-between;
+        }
+        .nav-brand { display: flex; align-items: center; gap: 10px; }
+        .nav-brand .logo {
+            width: 34px; height: 34px; border-radius: 8px;
+            background: var(--ink); color: #fff;
+            display: flex; align-items: center; justify-content: center; font-size: 14px;
+        }
+        .nav-brand span { font-weight: 700; font-size: 15px; color: var(--ink); }
+        .nav-badges { display: flex; gap: 8px; align-items: center; }
+        .badge {
+            font-size: 11px; font-weight: 600; padding: 3px 10px;
+            border-radius: 100px; border: 1px solid var(--line);
+            background: var(--surface-2); color: var(--ink-mid);
+            white-space: nowrap;
+        }
+        .badge.accent { background: var(--ink); color: #fff; border-color: var(--ink); cursor: pointer; }
+        .badge.accent:hover { opacity: 0.85; }
+
+        /* ─── SCREENS ─── */
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        /* ─── LANDING ─── */
+        #landing-screen {
+            min-height: 100vh; padding-top: 60px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .landing-inner {
+            max-width: 680px; margin: 0 auto; padding: 48px 24px;
+            text-align: center;
+        }
+        .landing-kicker {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+            color: var(--accent-2); background: #eef2ff; border: 1px solid #c7d2fe;
+            padding: 5px 14px; border-radius: 100px; margin-bottom: 24px;
+        }
+        .landing-title {
+            font-size: clamp(32px, 6vw, 52px); line-height: 1.1;
+            color: var(--ink); margin-bottom: 16px;
+        }
+        .landing-sub { font-size: 16px; color: var(--ink-mid); line-height: 1.7; margin-bottom: 40px; }
+        .instrument-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+            margin-bottom: 40px; text-align: left;
+        }
+        .instrument-card {
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: 14px; padding: 18px 16px;
+        }
+        .instrument-card .ic-tag {
+            font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+            color: var(--accent-2); background: #eef2ff; padding: 2px 8px;
+            border-radius: 100px; display: inline-block; margin-bottom: 10px;
+        }
+        .instrument-card h4 { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+        .instrument-card p { font-size: 11.5px; color: var(--ink-soft); line-height: 1.5; }
+        .start-btn {
+            display: inline-flex; align-items: center; gap: 10px;
+            background: var(--ink); color: #fff;
+            font-size: 16px; font-weight: 600; padding: 16px 36px;
+            border-radius: 100px; border: none; cursor: pointer;
+            transition: transform .2s, box-shadow .2s;
+            box-shadow: 0 8px 24px rgba(26,26,46,.2);
+        }
+        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(26,26,46,.3); }
+        .module-pills {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 36px;
+        }
+        .module-pill {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 12px; font-weight: 600; padding: 6px 14px;
+            border-radius: 100px; border: 1.5px solid var(--line); background: var(--surface);
+            color: var(--ink-mid);
+        }
+        .module-pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+        /* ─── QUIZ LAYOUT ─── */
+        #quiz-screen { padding-top: 60px; min-height: 100vh; }
+        .quiz-layout {
+            max-width: 1100px; margin: 0 auto; padding: 32px 16px;
+            display: grid; grid-template-columns: 260px 1fr; gap: 24px;
+        }
+        @media (max-width: 768px) {
+            .quiz-layout { grid-template-columns: 1fr; }
+            .quiz-sidebar { display: none; }
+        }
+
+        /* ─── SIDEBAR ─── */
+        .quiz-sidebar {
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: 20px; padding: 24px 20px;
+            position: sticky; top: 80px; height: fit-content;
+            max-height: calc(100vh - 100px); overflow-y: auto;
+        }
+        .sidebar-title { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 16px; }
+        .sidebar-module {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 10px 12px; border-radius: 10px;
+            cursor: pointer; transition: background .15s;
+            border-left: 3px solid transparent; margin-bottom: 2px;
+        }
+        .sidebar-module:hover { background: var(--surface-2); }
+        .sidebar-module.active { background: var(--surface-2); border-left-color: var(--accent-2); }
+        .sidebar-module.done .module-num { background: var(--green); color: #fff; }
+        .sidebar-module.active .module-num { background: var(--accent-2); color: #fff; }
+        .module-num {
+            width: 24px; height: 24px; border-radius: 50%;
+            background: var(--surface-3); color: var(--ink-soft);
+            font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; margin-top: 2px; transition: background .2s;
+        }
+        .module-info h4 { font-size: 13px; font-weight: 600; color: var(--ink); }
+        .module-info span { font-size: 11px; color: var(--ink-muted); }
+        .sidebar-progress-wrap { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+        .sidebar-progress-label { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--ink-soft); margin-bottom: 6px; }
+        .progress-track { height: 4px; background: var(--line); border-radius: 4px; }
+        .progress-fill { height: 4px; background: var(--accent-2); border-radius: 4px; transition: width .4s; }
+        .instrument-ref {
+            margin-top: 14px; font-size: 10.5px; color: var(--ink-muted);
+            padding: 10px 12px; background: var(--surface-2); border-radius: 8px;
+            line-height: 1.6;
+        }
+        .instrument-ref b { color: var(--ink-mid); display: block; margin-bottom: 4px; font-size: 11px; }
+
+        /* ─── QUIZ CONTENT ─── */
+        .quiz-content {
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: 20px; padding: 36px 36px 100px;
+            min-height: 500px; position: relative;
+        }
+        @media (max-width: 600px) { .quiz-content { padding: 24px 16px 90px; } }
+
+        .module-header { margin-bottom: 32px; }
+        .module-header-kicker {
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+            color: var(--accent-2); background: #eef2ff; border: 1px solid #c7d2fe;
+            padding: 4px 12px; border-radius: 100px; margin-bottom: 12px;
+        }
+        .module-header h2 { font-size: 26px; color: var(--ink); margin-bottom: 6px; }
+        .module-header p { font-size: 14px; color: var(--ink-soft); line-height: 1.6; }
+        .source-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 11px; font-weight: 600; padding: 4px 10px;
+            border-radius: 6px; margin-top: 10px; margin-right: 6px;
+        }
+
+        /* ─── QUESTION CARD ─── */
+        .q-card {
+            background: var(--surface-2); border: 1px solid var(--line);
+            border-radius: 16px; padding: 20px 22px; margin-bottom: 16px;
+            transition: border-color .2s;
+        }
+        .q-card.answered { border-color: #c7d2fe; background: #fafbff; }
+        .q-num { font-size: 11px; font-weight: 700; color: var(--ink-muted); letter-spacing: .05em; margin-bottom: 8px; }
+        .q-text { font-size: 15px; font-weight: 500; color: var(--ink); margin-bottom: 16px; line-height: 1.5; }
+        .q-note { font-size: 12px; color: var(--ink-muted); font-style: italic; margin-bottom: 14px; }
+        .options-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        @media (max-width: 600px) { .options-row { grid-template-columns: repeat(2, 1fr); } }
+        .opt-btn {
+            border: 1.5px solid var(--line); background: var(--surface);
+            border-radius: 10px; padding: 10px 8px; text-align: center;
+            cursor: pointer; transition: all .15s;
+            font-size: 12px; font-weight: 500; color: var(--ink-mid);
+            line-height: 1.3;
+        }
+        .opt-btn:hover { border-color: #a5b4fc; background: #eef2ff; }
+        .opt-btn.selected {
+            border-color: var(--accent-2); background: #eef2ff;
+            color: var(--accent-2); font-weight: 700;
+            box-shadow: 0 0 0 2px rgba(67,56,202,.12);
+        }
+        .opt-btn .opt-score {
+            display: block; font-size: 10px; font-weight: 700;
+            margin-bottom: 3px; opacity: .6;
+        }
+        /* K6 options — wider */
+        .options-k6 { grid-template-columns: repeat(5, 1fr); }
+        @media (max-width: 600px) { .options-k6 { grid-template-columns: repeat(3, 1fr); } }
+
+        /* ─── NAV FOOTER ─── */
+        .quiz-footer {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: var(--surface); border-top: 1px solid var(--line);
+            padding: 16px 36px; border-radius: 0 0 20px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .btn-ghost {
+            background: none; border: 1.5px solid var(--line); color: var(--ink-mid);
+            font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+            padding: 10px 22px; border-radius: 10px; cursor: pointer; transition: all .15s;
+        }
+        .btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
+        .btn-primary {
+            background: var(--ink); color: #fff;
+            font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+            padding: 10px 26px; border-radius: 10px; border: none; cursor: pointer; transition: all .15s;
+        }
+        .btn-primary:hover:not(:disabled) { background: #2d2d4a; }
+        .btn-primary:disabled { background: var(--line); color: var(--ink-muted); cursor: not-allowed; }
+
+        /* ─── RESULT ─── */
+        #result-screen { padding-top: 60px; }
+        .result-inner { max-width: 1100px; margin: 0 auto; padding: 40px 16px 60px; }
+        .result-header { text-align: center; margin-bottom: 40px; }
+        .result-header h2 { font-size: clamp(28px, 5vw, 42px); color: var(--ink); margin-bottom: 8px; }
+        .result-header p { color: var(--ink-soft); font-size: 15px; }
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        @media (max-width: 768px) { .result-grid { grid-template-columns: 1fr; } }
         
-        .fade-enter { opacity: 0; transform: translateX(20px); }
-        .fade-enter-active { opacity: 1; transform: translateX(0); transition: all 0.4s ease-out; }
-        .fade-exit { opacity: 1; transform: translateX(0); }
-        .fade-exit-active { opacity: 0; transform: translateX(-20px); transition: all 0.3s ease-in; }
-
-        input[type="radio"] { display: none; }
+        .result-card {
+            background: var(--surface); border: 1px solid var(--line);
+            border-radius: 20px; padding: 32px; position: relative; overflow: hidden;
+        }
+        .result-card.main { padding-top: 36px; }
+        .result-top-bar { position: absolute; top: 0; left: 0; right: 0; height: 5px; }
         
-        .option-label {
-            transition: all 0.2s ease-in-out;
+        .verdict-tag {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+            padding: 4px 12px; border-radius: 100px; border: 1.5px solid; margin-bottom: 16px;
         }
-        .option-label:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        .verdict-title { font-size: clamp(22px, 4vw, 32px); color: var(--ink); margin-bottom: 12px; line-height: 1.2; }
+        .verdict-desc { font-size: 14px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 20px; }
+        .verdict-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+        .vbadge {
+            font-size: 12px; font-weight: 600; padding: 5px 12px;
+            border-radius: 100px; border: 1px solid;
         }
-        .option-label.selected {
-            border-color: #4f46e5 !important;
-            background-color: #eef2ff !important;
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-        }
+        
+        #chart-wrap { height: 260px; position: relative; }
 
-        .domain-step.active {
-            background-color: #eef2ff;
-            border-left: 4px solid #6366f1;
+        .detail-section { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 28px; }
+        .detail-section h3 { font-size: 18px; color: var(--ink); margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+        .domain-row {
+            display: flex; align-items: flex-start; gap: 14px;
+            padding: 14px; border-radius: 12px; border: 1px solid var(--line);
+            margin-bottom: 10px; background: var(--surface-2);
         }
-        .domain-step.completed .step-icon {
-            background-color: #10b981;
-            color: white;
+        .domain-row.flagged { border-color: #fca5a5; background: #fff5f5; }
+        .domain-row.mild { border-color: #fcd34d; background: #fffbeb; }
+        .domain-icon-wrap {
+            width: 40px; height: 40px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; flex-shrink: 0;
         }
-        .domain-step.active .step-icon {
-            background-color: #6366f1;
-            color: white;
+        .domain-row-body { flex: 1; }
+        .domain-row-body h4 { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+        .domain-row-body p { font-size: 12px; color: var(--ink-soft); line-height: 1.5; }
+        .status-pill {
+            font-size: 10.5px; font-weight: 700; padding: 3px 8px;
+            border-radius: 100px; white-space: nowrap; flex-shrink: 0; margin-top: 2px;
         }
+        .status-pill.ok { background: var(--tag-green); color: #065f46; }
+        .status-pill.mild { background: var(--tag-yellow); color: #92400e; }
+        .status-pill.flagged { background: var(--tag-red); color: #991b1b; }
 
-        /* Radar Chart Container */
-        #radar-chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 350px;
-            margin: 0 auto;
-        }
+        .whodas-wrap { margin-top: 20px; padding: 18px; background: var(--surface-2); border-radius: 12px; border: 1px solid var(--line); }
+        .whodas-title { font-size: 12px; font-weight: 700; color: var(--ink-mid); margin-bottom: 12px; }
+        .whodas-bars { display: flex; flex-direction: column; gap: 8px; }
+        .wbar-row { display: flex; align-items: center; gap: 10px; }
+        .wbar-label { font-size: 11px; color: var(--ink-soft); width: 100px; flex-shrink: 0; }
+        .wbar-track { flex: 1; height: 6px; background: var(--line); border-radius: 4px; }
+        .wbar-fill { height: 6px; border-radius: 4px; transition: width .6s; }
+        .wbar-val { font-size: 11px; font-weight: 700; color: var(--ink-mid); width: 30px; text-align: right; }
 
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .ref-block {
+            margin-top: 28px; padding: 16px 18px;
+            background: #f0f4ff; border: 1px solid #c7d2fe;
+            border-radius: 12px;
+        }
+        .ref-block h4 { font-size: 12px; font-weight: 700; color: var(--accent-2); margin-bottom: 8px; }
+        .ref-block p { font-size: 12px; color: #4338ca; line-height: 1.6; }
+
+        .reset-row { margin-top: 32px; text-align: right; }
+
+        /* Animations */
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-up { animation: fadeUp .4s ease-out forwards; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col">
+<body>
 
-    <!-- Navbar -->
-    <nav class="w-full bg-white/80 backdrop-blur-md shadow-sm fixed top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center shadow-lg shadow-brand-500/30">
-                    <i class="fa-solid fa-users-viewfinder"></i>
-                </div>
-                <span class="font-bold text-gray-800 text-xl tracking-tight hidden sm:block">Klasifikasi Disabilitas</span>
-            </div>
-            
-            <div class="flex items-center space-x-2 sm:space-x-3">
-                <div class="flex items-center space-x-2 border-r border-slate-200 pr-2 sm:pr-4">
-                    <button onclick="loadSampleData()" class="text-xs font-semibold bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 px-3 py-1.5 rounded-lg transition-colors flex items-center">
-                        <i class="fa-solid fa-flask"></i><span class="hidden sm:inline ml-1.5">Isi Otomatis</span>
-                    </button>
-                </div>
-                <div class="hidden md:block text-sm font-semibold bg-brand-50 text-brand-700 px-3 py-1 rounded-full border border-brand-100">
-                    Berdasarkan UU RI 8/2016
-                </div>
-            </div>
+    <!-- NAV -->
+    <nav>
+        <div class="nav-brand">
+            <div class="logo"><i class="fa-solid fa-users-viewfinder"></i></div>
+            <span>Skrining Disabilitas</span>
+        </div>
+        <div class="nav-badges">
+            <span class="badge">UU No. 8/2016</span>
+            <span class="badge">WG-SS · WHODAS 2.0 · K6</span>
+            <span class="badge accent" onclick="loadDemo()"><i class="fa-solid fa-flask" style="margin-right:5px"></i>Demo</span>
         </div>
     </nav>
 
-    <main class="flex-grow pt-20 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full flex flex-col">
-        
-        <!-- SECTION 1: Landing Page -->
-        <div id="landing-screen" class="flex-grow flex items-center justify-center transition-all duration-500">
-            <div class="bg-white rounded-3xl shadow-xl p-8 md:p-12 max-w-3xl text-center border border-slate-100">
-                <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-brand-100 to-brand-50 text-brand-600 mb-6 shadow-inner">
-                    <i class="fa-solid fa-layer-group text-5xl"></i>
-                </div>
-                <h1 class="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">Skrining Ragam Disabilitas</h1>
-                <p class="text-slate-600 mb-8 leading-relaxed text-lg">
-                    Instrumen ini dirancang untuk mengidentifikasi <b>Jenis Disabilitas</b> seseorang berdasarkan 4 kategori utama dalam UU RI No. 8 Tahun 2016. Alat ini menentukan apakah seseorang memiliki disabilitas tunggal atau ganda.
-                </p>
-                <div class="grid grid-cols-2 gap-4 mb-8 text-left text-sm text-slate-600">
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100"><i class="fa-solid fa-eye text-brand-500 text-xl mb-2 block"></i><b>Sensorik</b><br>Penglihatan & Pendengaran</div>
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100"><i class="fa-solid fa-wheelchair text-brand-500 text-xl mb-2 block"></i><b>Fisik</b><br>Gerak tubuh & Anatomi</div>
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100"><i class="fa-solid fa-puzzle-piece text-brand-500 text-xl mb-2 block"></i><b>Intelektual</b><br>Fungsi kognitif & Belajar</div>
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100"><i class="fa-solid fa-head-side-virus text-brand-500 text-xl mb-2 block"></i><b>Mental</b><br>Kejiwaan & Perilaku</div>
-                </div>
-                <button onclick="startAssessment()" class="bg-brand-600 hover:bg-brand-500 text-white font-semibold py-4 px-10 rounded-full transition-all transform hover:scale-105 hover:shadow-xl hover:shadow-brand-500/30 text-lg">
-                    Mulai Skrining <i class="fa-solid fa-arrow-right ml-2"></i>
-                </button>
+    <!-- ═══════════════════ LANDING ═══════════════════ -->
+    <div id="landing-screen" class="screen active">
+        <div class="landing-inner">
+            <div class="landing-kicker">
+                <i class="fa-solid fa-shield-halved"></i> Instrumen Tervalidasi WHO
             </div>
+            <h1 class="landing-title serif">Skrining Ragam<br><em>Disabilitas</em></h1>
+            <p class="landing-sub">
+                Penilaian komprehensif berbasis instrumen internasional untuk mengidentifikasi
+                jenis & tingkat keparahan hambatan fungsi, sesuai UU RI No. 8 Tahun 2016.
+            </p>
+
+            <div class="module-pills">
+                <div class="module-pill"><div class="dot" style="background:#0284c7"></div>Sensorik</div>
+                <div class="module-pill"><div class="dot" style="background:#7c3aed"></div>Fisik & Mobilitas</div>
+                <div class="module-pill"><div class="dot" style="background:#b45309"></div>Kognitif</div>
+                <div class="module-pill"><div class="dot" style="background:#0d9488"></div>Komunikasi</div>
+                <div class="module-pill"><div class="dot" style="background:#be185d"></div>Mental & Psikososial</div>
+            </div>
+
+            <div class="instrument-grid">
+                <div class="instrument-card">
+                    <div class="ic-tag">WG-SS</div>
+                    <h4>Washington Group Short Set</h4>
+                    <p>6 pertanyaan inti standar sensus WHO. Digunakan 90+ negara untuk identifikasi disabilitas.</p>
+                </div>
+                <div class="instrument-card">
+                    <div class="ic-tag">WHODAS 2.0</div>
+                    <h4>WHO Disability Assessment Schedule</h4>
+                    <p>Mengukur keparahan hambatan fungsi di 6 domain kehidupan. Dasar ICD-11 & DSM-5.</p>
+                </div>
+                <div class="instrument-card">
+                    <div class="ic-tag">K6</div>
+                    <h4>Kessler Psychological Distress Scale</h4>
+                    <p>Screener kesehatan jiwa 6-item yang tervalidasi secara global untuk gangguan mental serius.</p>
+                </div>
+            </div>
+
+            <button class="start-btn" onclick="startAssessment()">
+                Mulai Skrining <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <p style="margin-top:14px; font-size:12px; color:var(--ink-muted);">± 8–12 menit · 5 modul · 26 pertanyaan</p>
         </div>
+    </div>
 
-        <!-- SECTION 2: Quiz Container -->
-        <div id="quiz-screen" class="hidden h-full flex-grow flex flex-col md:flex-row gap-6">
-            
-            <!-- Left Column: Sidebar -->
-            <div class="w-full md:w-1/3 lg:w-1/4 bg-white rounded-3xl shadow-lg border border-slate-100 p-6 flex flex-col h-auto md:h-[calc(100vh-8rem)] sticky top-24">
-                <h3 class="text-lg font-bold text-slate-800 mb-6 border-b pb-4">Tahapan Skrining</h3>
-                <div id="sidebar-nav" class="space-y-2 flex-grow overflow-y-auto no-scrollbar"></div>
-                <div class="mt-6 pt-6 border-t">
-                    <div class="flex justify-between text-xs font-semibold text-slate-500 mb-2">
-                        <span>Progress</span>
-                        <span id="overall-progress-text">0%</span>
-                    </div>
-                    <div class="w-full bg-slate-100 rounded-full h-2">
-                        <div id="overall-progress-bar" class="bg-brand-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
-                    </div>
+    <!-- ═══════════════════ QUIZ ═══════════════════ -->
+    <div id="quiz-screen" class="screen">
+        <div class="quiz-layout">
+            <!-- Sidebar -->
+            <aside class="quiz-sidebar">
+                <div class="sidebar-title">Modul Penilaian</div>
+                <div id="sidebar-nav"></div>
+                <div class="sidebar-progress-wrap">
+                    <div class="sidebar-progress-label"><span>Progress</span><span id="prog-text">0%</span></div>
+                    <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
                 </div>
-            </div>
-
-            <!-- Right Column: Content -->
-            <div class="w-full md:w-2/3 lg:w-3/4 bg-white rounded-3xl shadow-lg border border-slate-100 p-6 sm:p-8 flex flex-col relative overflow-hidden min-h-[500px]">
-                <div class="mb-6">
-                    <div class="flex items-center text-brand-600 mb-2">
-                        <i id="domain-icon" class="fa-solid text-2xl mr-3"></i>
-                        <h2 id="domain-title" class="text-2xl font-bold text-slate-800">Domain</h2>
-                    </div>
-                    <p id="domain-desc" class="text-slate-500">Deskripsi</p>
+                <div class="instrument-ref">
+                    <b>Referensi Instrumen</b>
+                    Washington Group Short Set (WG-SS) · WG Extended Set · WHODAS 2.0 (WHO, 2010) · K6 Kessler Scale · UU RI No. 8/2016
                 </div>
+            </aside>
 
-                <div id="questions-container" class="flex-grow overflow-y-auto space-y-8 pr-2 pb-20 fade-enter-active no-scrollbar"></div>
-
-                <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 p-4 sm:px-8 flex justify-between items-center rounded-b-3xl">
-                    <button onclick="prevDomain()" id="btn-prev" class="text-slate-500 hover:text-slate-800 font-medium px-4 py-2 rounded-lg transition-colors invisible">
-                        <i class="fa-solid fa-arrow-left mr-2"></i> Kembali
+            <!-- Content -->
+            <main class="quiz-content">
+                <div class="module-header">
+                    <div id="mod-kicker" class="module-header-kicker"></div>
+                    <h2 class="serif" id="mod-title"></h2>
+                    <p id="mod-desc"></p>
+                    <div id="mod-sources"></div>
+                </div>
+                <div id="questions-area"></div>
+                <div class="quiz-footer">
+                    <button class="btn-ghost" id="btn-prev" onclick="prevModule()" style="visibility:hidden">
+                        <i class="fa-solid fa-arrow-left" style="margin-right:8px"></i>Kembali
                     </button>
-                    <button onclick="nextDomain()" id="btn-next" class="bg-slate-200 text-slate-400 cursor-not-allowed font-medium py-3 px-6 sm:px-8 rounded-xl transition-all flex items-center" disabled>
-                        <span id="next-btn-text">Selanjutnya</span> <i class="fa-solid fa-arrow-right ml-2"></i>
+                    <button class="btn-primary" id="btn-next" onclick="nextModule()" disabled>
+                        <span id="btn-next-label">Lanjut</span> <i class="fa-solid fa-arrow-right" style="margin-left:8px"></i>
                     </button>
                 </div>
-            </div>
+            </main>
         </div>
+    </div>
 
-        <!-- SECTION 3: Result Page -->
-        <div id="result-screen" class="hidden fade-enter-active">
-            <div class="text-center mb-8">
-                <h2 class="text-3xl font-extrabold text-slate-900 mb-2">Laporan Klasifikasi Disabilitas</h2>
-                <p class="text-slate-500">Berdasarkan pedoman identifikasi fungsi medis & sosial</p>
+    <!-- ═══════════════════ RESULT ═══════════════════ -->
+    <div id="result-screen" class="screen">
+        <div class="result-inner">
+            <div class="result-header fade-up">
+                <p style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-2);margin-bottom:8px">Laporan Hasil Skrining</p>
+                <h2 class="serif">Klasifikasi Ragam Disabilitas</h2>
+                <p>Berdasarkan WG-SS, WHODAS 2.0, dan UU RI No. 8 Tahun 2016</p>
             </div>
-
-            <div class="flex flex-col lg:flex-row gap-8 items-start">
-                
-                <!-- Kategori Utama & Radar Chart -->
-                <div class="w-full lg:w-1/2 bg-white p-8 rounded-3xl shadow-lg border border-slate-100 flex flex-col items-center justify-center text-center relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-full h-2 bg-brand-500" id="result-color-bar"></div>
-                    
-                    <p class="text-sm font-semibold text-slate-500 uppercase tracking-widest mb-4">Diagnosis Ragam Disabilitas</p>
-                    
-                    <div id="main-diagnosis-icon" class="text-5xl text-brand-600 mb-4">
-                        <i class="fa-solid fa-stethoscope"></i>
-                    </div>
-                    
-                    <h1 id="main-diagnosis-title" class="text-3xl font-black text-slate-900 mb-3 tracking-tight">
-                        <!-- Disabilitas Fisik, etc -->
-                    </h1>
-                    
-                    <p id="main-diagnosis-desc" class="text-slate-600 px-4 text-sm mb-6">
-                        <!-- Deskripsi -->
-                    </p>
-
-                    <div id="severity-badges" class="flex flex-wrap justify-center gap-2 mb-8">
-                        <!-- Badges -->
-                    </div>
-
-                    <!-- Radar Chart -->
-                    <div class="w-full border-t border-slate-100 pt-6 mt-2">
-                        <p class="text-sm font-bold text-slate-700 mb-4">Profil Intensitas Hambatan</p>
-                        <div id="radar-chart-container">
-                            <canvas id="typeRadarChart"></canvas>
-                        </div>
-                    </div>
+            <div class="result-grid">
+                <!-- Main verdict card -->
+                <div class="result-card main">
+                    <div class="result-top-bar" id="result-bar"></div>
+                    <div id="verdict-tag-wrap"></div>
+                    <h3 class="verdict-title serif" id="verdict-title"></h3>
+                    <p class="verdict-desc" id="verdict-desc"></p>
+                    <div class="verdict-badges" id="verdict-badges"></div>
+                    <div id="chart-wrap"><canvas id="radarChart"></canvas></div>
                 </div>
 
-                <!-- Penjabaran -->
-                <div class="w-full lg:w-1/2 flex flex-col space-y-4">
-                    <div class="bg-brand-50 p-5 rounded-2xl border border-brand-100 mb-4">
-                        <h3 class="text-lg font-bold text-brand-900 mb-2"><i class="fa-solid fa-scale-balanced mr-2"></i>Kesesuaian UU No. 8 Tahun 2016</h3>
-                        <p class="text-sm text-brand-700 leading-relaxed">
-                            Data ini dapat digunakan pemerintah daerah sebagai dasar penerbitan Kartu Penyandang Disabilitas dan pemberian layanan dasar yang tepat sasaran sesuai ragam hambatannya.
-                        </p>
+                <!-- WHODAS score + domain detail -->
+                <div style="display:flex;flex-direction:column;gap:20px">
+                    <div class="whodas-wrap">
+                        <div class="whodas-title"><i class="fa-solid fa-chart-bar" style="margin-right:6px"></i>Profil Hambatan WHODAS 2.0</div>
+                        <div class="whodas-bars" id="whodas-bars"></div>
                     </div>
 
-                    <h3 class="text-xl font-bold text-slate-800 mb-2 border-b pb-2">Rincian Indikasi per Kategori</h3>
-                    <div id="diagnosis-list" class="space-y-3">
-                        <!-- List -->
+                    <div class="detail-section">
+                        <h3 class="serif">Rincian per Kategori</h3>
+                        <div id="domain-rows"></div>
                     </div>
 
-                    <div class="mt-8 pt-6 border-t flex justify-end">
-                        <button onclick="location.reload()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-6 rounded-xl transition-colors">
-                            <i class="fa-solid fa-rotate-right mr-2"></i> Skrining Pasien Lain
+                    <div class="ref-block">
+                        <h4><i class="fa-solid fa-scale-balanced" style="margin-right:6px"></i>Dasar Hukum & Tindak Lanjut</h4>
+                        <p>Hasil ini dapat menjadi dasar penerbitan <b>Kartu Penyandang Disabilitas</b> dan rujukan layanan rehabilitasi sesuai UU RI No. 8 Tahun 2016 Pasal 7. Skor WHODAS menentukan level dukungan yang diperlukan (ringan / sedang / berat).</p>
+                    </div>
+
+                    <div class="reset-row">
+                        <button class="btn-ghost" onclick="location.reload()">
+                            <i class="fa-solid fa-rotate-right" style="margin-right:8px"></i>Skrining Pasien Lain
                         </button>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-    </main>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   DATA MODUL — Instrumen internasional tervalidasi
+═══════════════════════════════════════════════════════════════ */
 
-    <script>
-        // Data Struktur Skrining (Fokus pada JENIS, bukan sekadar keparahan)
-        const screeningData = [
-            {
-                id: 'sensorik', title: "1. Disabilitas Sensorik", icon: "fa-eye", 
-                description: "Hambatan pada fungsi indera (penglihatan & pendengaran).",
-                examples: "Contoh: Tunanetra (Buta total/Low vision), Tunarungu (Tuli/Kurang pendengaran).",
-                questions: [
-                    "Apakah Anda mengalami kesulitan MELIHAT (meskipun sudah memakai kacamata)?",
-                    "Apakah Anda mengalami kesulitan MENDENGAR (meskipun sudah memakai alat bantu dengar)?"
-                ]
-            },
-            {
-                id: 'fisik', title: "2. Disabilitas Fisik", icon: "fa-wheelchair", 
-                description: "Hambatan fungsi gerak tubuh, otot, tulang, atau sendi.",
-                examples: "Contoh: Amputasi, Paraplegia (Lumpuh), Cerebral Palsy, Stroke, Kusta.",
-                questions: [
-                    "Apakah Anda mengalami kesulitan BERJALAN atau NAIK TANGGA (membutuhkan tongkat/kursi roda)?",
-                    "Apakah Anda mengalami hambatan pada fungsi TANGAN/LENGAN (termasuk kekakuan otot, kelumpuhan, atau amputasi)?"
-                ]
-            },
-            {
-                id: 'intelektual', title: "3. Disabilitas Intelektual", icon: "fa-puzzle-piece", 
-                description: "Hambatan fungsi kognitif/kecerdasan di bawah rata-rata.",
-                examples: "Contoh: Down Syndrome, Keterbelakangan Mental, Lambat Belajar (Slow Learner).",
-                questions: [
-                    "Apakah Anda/Pasien memiliki kesulitan signifikan dalam BELAJAR hal-hal dasar, mengingat, atau memahami instruksi dibandingkan orang seusianya?",
-                    "Apakah diperlukan bantuan orang lain secara terus-menerus untuk melakukan aktivitas merawat diri dasar (mandi, berpakaian) karena keterbatasan pemahaman?"
-                ]
-            },
-            {
-                id: 'mental', title: "4. Disabilitas Mental", icon: "fa-head-side-virus", 
-                description: "Hambatan pada fungsi kejiwaan, pikiran, emosi, atau perilaku sosial.",
-                examples: "Contoh Psikiatrik: Skizofrenia, Bipolar, Depresi Mayor.\nContoh Perkembangan: Autisme (ASD), ADHD/Hiperaktif.",
-                questions: [
-                    "Apakah memiliki riwayat GANGGUAN KEJIWAAN (seperti Skizofrenia, Bipolar, Depresi Mayor) yang memengaruhi aktivitas sehari-hari?",
-                    "Apakah memiliki gangguan perkembangan PERILAKU/INTERAKSI SOSIAL (seperti Autisme atau Hiperaktif/ADHD)?"
-                ]
-            }
-        ];
+const WG_SCALE = [
+    { val: 0, label: "Tidak ada kesulitan" },
+    { val: 1, label: "Ada, sedikit kesulitan" },
+    { val: 2, label: "Banyak kesulitan" },
+    { val: 3, label: "Tidak bisa sama sekali" }
+];
 
-        // Opsi Skrining (Berbasis Washington Group Short Set scale)
-        const optionsData = [
-            { value: 0, label: "Tidak", colorClass: "text-slate-600 bg-white border-slate-200" },
-            { value: 1, label: "Ya, Ringan", colorClass: "text-yellow-600 bg-yellow-50 border-yellow-200" },
-            { value: 2, label: "Ya, Sedang", colorClass: "text-orange-500 bg-orange-50 border-orange-200" },
-            { value: 3, label: "Ya, Berat / Tidak Bisa", colorClass: "text-red-600 bg-red-50 border-red-200" }
-        ];
+const FREQ_SCALE = [
+    { val: 0, label: "Tidak pernah" },
+    { val: 1, label: "Sedikit waktu" },
+    { val: 2, label: "Kadang-kadang" },
+    { val: 3, label: "Sebagian besar waktu" },
+    { val: 4, label: "Selalu / Setiap saat" }
+];
 
-        let currentDomainIndex = 0;
-        let answers = screeningData.map(d => new Array(d.questions.length).fill(null));
-        let typeRadarChartInstance = null; // Tambahkan instance chart
+const WHODAS_SCALE = [
+    { val: 0, label: "Tidak ada" },
+    { val: 1, label: "Ringan" },
+    { val: 2, label: "Sedang" },
+    { val: 3, label: "Berat" },
+    { val: 4, label: "Sangat berat / Tidak mampu" }
+];
 
-        const screens = {
-            landing: document.getElementById('landing-screen'),
-            quiz: document.getElementById('quiz-screen'),
-            result: document.getElementById('result-screen')
-        };
-        const dom = {
-            sidebarNav: document.getElementById('sidebar-nav'),
-            overallProgressBar: document.getElementById('overall-progress-bar'),
-            overallProgressText: document.getElementById('overall-progress-text'),
-            domainTitle: document.getElementById('domain-title'),
-            domainIcon: document.getElementById('domain-icon'),
-            domainDesc: document.getElementById('domain-desc'),
-            questionsContainer: document.getElementById('questions-container'),
-            btnPrev: document.getElementById('btn-prev'),
-            btnNext: document.getElementById('btn-next'),
-            nextBtnText: document.getElementById('next-btn-text')
-        };
+const modules = [
+  {
+    id: "sensorik",
+    title: "Disabilitas Sensorik",
+    kicker: "Modul A · WG-SS + WG Extended",
+    desc: "Penilaian hambatan fungsi indera. Pertanyaan diajukan dengan asumsi pasien sudah menggunakan alat bantu yang tersedia (kacamata/ABD).",
+    color: "#0284c7",
+    icon: "fa-eye",
+    sources: ["WG-SS Q1–Q2", "WG Extended Set"],
+    scale: WG_SCALE,
+    scaleType: "wg",
+    uu: "Pasal 4 ayat (1)a — Disabilitas Sensorik",
+    questions: [
+      { id:"s1", text:"Apakah Anda mengalami kesulitan MELIHAT, bahkan saat menggunakan kacamata?", note:"Termasuk: penglihatan kabur, buta satu mata, buta total, low vision.", whodas: "sensorik" },
+      { id:"s2", text:"Apakah Anda mengalami kesulitan MENDENGAR, bahkan saat menggunakan alat bantu dengar?", note:"Termasuk: tuli satu/dua sisi, kurang pendengaran sebagian.", whodas: "sensorik" },
+      { id:"s3", text:"Apakah Anda mengalami kesulitan membedakan WARNA atau melihat dalam kondisi cahaya rendah?", note:"WG Extended: Sensorik tambahan (buta warna, nyctanopia).", whodas: "sensorik" }
+    ]
+  },
+  {
+    id: "fisik",
+    title: "Disabilitas Fisik",
+    kicker: "Modul B · WG-SS + WG Extended + WHODAS 2.0",
+    desc: "Penilaian hambatan mobilitas, fungsi tubuh, dan perawatan diri. Mencakup fungsi ekstremitas atas dan bawah.",
+    color: "#7c3aed",
+    icon: "fa-wheelchair",
+    sources: ["WG-SS Q3", "WG-SS Q5", "WG Extended Set", "WHODAS 2.0 D1–D2"],
+    scale: WG_SCALE,
+    scaleType: "wg",
+    uu: "Pasal 4 ayat (1)b — Disabilitas Fisik",
+    questions: [
+      { id:"f1", text:"Apakah Anda mengalami kesulitan BERJALAN JAUH (sekitar 500 meter) atau NAIK TANGGA?", note:"WG-SS Q3: Core mobility item. Termasuk kebutuhan tongkat, walker, atau kursi roda.", whodas: "fisik" },
+      { id:"f2", text:"Apakah Anda mengalami kesulitan MERAWAT DIRI SENDIRI, seperti mandi seluruh tubuh atau berpakaian?", note:"WG-SS Q5: Core self-care item.", whodas: "fisik" },
+      { id:"f3", text:"Apakah Anda mengalami kesulitan pada fungsi TANGAN atau LENGAN (termasuk kekakuan, tremor, kelumpuhan, atau amputasi)?", note:"WG Extended: Upper limb function.", whodas: "fisik" },
+      { id:"f4", text:"Apakah Anda mengalami NYERI KRONIS atau ketidaknyamanan fisik yang menghambat aktivitas sehari-hari?", note:"WHODAS 2.0 D1: Nyeri & kondisi fisik.", whodas: "fisik" }
+    ]
+  },
+  {
+    id: "kognitif",
+    title: "Disabilitas Intelektual",
+    kicker: "Modul C · WG-SS + WG Extended",
+    desc: "Penilaian fungsi kognitif, kemampuan belajar, memori, dan penalaran. Dibandingkan dengan standar usia sebaya.",
+    color: "#b45309",
+    icon: "fa-puzzle-piece",
+    sources: ["WG-SS Q4", "WG Extended Set — Kognitif"],
+    scale: WG_SCALE,
+    scaleType: "wg",
+    uu: "Pasal 4 ayat (1)c — Disabilitas Intelektual",
+    questions: [
+      { id:"k1", text:"Apakah Anda mengalami kesulitan MENGINGAT atau BERKONSENTRASI?", note:"WG-SS Q4: Core cognition item.", whodas: "kognitif" },
+      { id:"k2", text:"Apakah Anda mengalami kesulitan MEMPELAJARI hal-hal baru atau memahami instruksi dasar?", note:"WG Extended: Learning & understanding.", whodas: "kognitif" },
+      { id:"k3", text:"Apakah Anda memerlukan bantuan orang lain secara BERKELANJUTAN untuk aktivitas dasar karena keterbatasan pemahaman?", note:"WG Extended: Need for support — Indikator signifikan disabilitas intelektual.", whodas: "kognitif" }
+    ]
+  },
+  {
+    id: "komunikasi",
+    title: "Hambatan Komunikasi",
+    kicker: "Modul D · WG-SS + WHODAS 2.0",
+    desc: "Penilaian kemampuan berkomunikasi dalam bahasa yang biasa digunakan. Mencakup kemampuan verbal dan non-verbal.",
+    color: "#0d9488",
+    icon: "fa-comments",
+    sources: ["WG-SS Q6", "WHODAS 2.0 D2"],
+    scale: WG_SCALE,
+    scaleType: "wg",
+    uu: "Bagian dari Disabilitas Fisik/Mental sesuai UU 8/2016",
+    questions: [
+      { id:"kom1", text:"Apakah Anda mengalami kesulitan BERKOMUNIKASI dalam bahasa yang biasa Anda gunakan (dipahami atau memahami orang lain)?", note:"WG-SS Q6: Core communication item. Termasuk gangguan bicara, afasia, bisu.", whodas: "komunikasi" },
+      { id:"kom2", text:"Apakah Anda mengalami kesulitan dalam BERINTERAKSI SOSIAL sehari-hari (menjalin percakapan, bergaul)?", note:"WHODAS 2.0 D2: Participation restriction.", whodas: "komunikasi" }
+    ]
+  },
+  {
+    id: "mental",
+    title: "Disabilitas Mental",
+    kicker: "Modul E · K6 Kessler Scale + DSM-5 / ICD-11",
+    desc: "Skrining kesehatan jiwa menggunakan K6 (Kessler Psychological Distress Scale). Mengukur kondisi 30 hari terakhir.",
+    color: "#be185d",
+    icon: "fa-head-side-virus",
+    sources: ["K6 Kessler Scale (6 items)", "DSM-5 Screen", "WHODAS 2.0 D6"],
+    scale: FREQ_SCALE,
+    scaleType: "k6",
+    uu: "Pasal 4 ayat (1)d — Disabilitas Mental",
+    questions: [
+      { id:"m1", text:"Selama 30 hari TERAKHIR, seberapa sering Anda merasa GUGUP atau cemas berlebihan?", note:"K6 Item 1 — Nervousness/anxiety.", whodas: "mental" },
+      { id:"m2", text:"Selama 30 hari TERAKHIR, seberapa sering Anda merasa PUTUS ASA, seolah tidak ada harapan?", note:"K6 Item 2 — Hopelessness.", whodas: "mental" },
+      { id:"m3", text:"Selama 30 hari TERAKHIR, seberapa sering Anda merasa GELISAH atau tidak bisa diam?", note:"K6 Item 3 — Restlessness.", whodas: "mental" },
+      { id:"m4", text:"Selama 30 hari TERAKHIR, seberapa sering Anda merasa sangat SEDIH sehingga tidak ada yang bisa menghibur?", note:"K6 Item 4 — Sadness/depression.", whodas: "mental" },
+      { id:"m5", text:"Selama 30 hari TERAKHIR, seberapa sering Anda merasa bahwa SEGALANYA ADALAH USAHA yang melelahkan?", note:"K6 Item 5 — Effort/fatigue.", whodas: "mental" },
+      { id:"m6", text:"Selama 30 hari TERAKHIR, seberapa sering Anda merasa TIDAK BERHARGA?", note:"K6 Item 6 — Worthlessness.", whodas: "mental" }
+    ]
+  }
+];
 
-        function startAssessment() {
-            screens.landing.classList.add('hidden');
-            screens.quiz.classList.remove('hidden');
-            renderSidebar();
-            renderDomain();
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════════ */
+let currentMod = 0;
+let answers = modules.map(m => new Array(m.questions.length).fill(null));
+let radarInstance = null;
+
+/* ═══════════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════════ */
+function show(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0,0);
+}
+
+function startAssessment() {
+    show('quiz-screen');
+    renderSidebar(); renderModule();
+}
+
+function prevModule() {
+    if (currentMod > 0) { currentMod--; renderModule(); renderSidebar(); }
+}
+
+function nextModule() {
+    if (currentMod < modules.length - 1) {
+        currentMod++;
+        renderModule(); renderSidebar();
+        document.querySelector('.quiz-content').scrollTop = 0;
+    } else {
+        calcResults();
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════════════════════ */
+function renderSidebar() {
+    const nav = document.getElementById('sidebar-nav');
+    nav.innerHTML = '';
+    let totalAns = 0, totalQ = 0;
+
+    modules.forEach((m, i) => {
+        totalQ += m.questions.length;
+        const ans = answers[i].filter(a => a !== null).length;
+        totalAns += ans;
+        const done = ans === m.questions.length;
+        const active = i === currentMod;
+
+        const el = document.createElement('div');
+        el.className = `sidebar-module ${active ? 'active' : ''} ${done && !active ? 'done' : ''}`;
+        el.onclick = () => { currentMod = i; renderModule(); renderSidebar(); };
+        el.innerHTML = `
+            <div class="module-num">${done ? '<i class="fa-solid fa-check" style="font-size:10px"></i>' : i+1}</div>
+            <div class="module-info">
+                <h4>${m.title}</h4>
+                <span>${ans}/${m.questions.length} dijawab</span>
+            </div>
+        `;
+        nav.appendChild(el);
+    });
+
+    const pct = Math.round(totalAns / totalQ * 100);
+    document.getElementById('prog-fill').style.width = pct + '%';
+    document.getElementById('prog-text').innerText = pct + '%';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE RENDER
+═══════════════════════════════════════════════════════════════ */
+function renderModule() {
+    const m = modules[currentMod];
+    
+    // Header
+    document.getElementById('mod-kicker').innerHTML = `<i class="fa-solid ${m.icon}" style="margin-right:6px"></i>${m.kicker}`;
+    document.getElementById('mod-kicker').style.background = m.color + '15';
+    document.getElementById('mod-kicker').style.color = m.color;
+    document.getElementById('mod-kicker').style.borderColor = m.color + '40';
+    document.getElementById('mod-title').innerText = m.title;
+    document.getElementById('mod-desc').innerText = m.desc;
+
+    const sourcesEl = document.getElementById('mod-sources');
+    sourcesEl.innerHTML = m.sources.map(s => `
+        <span class="source-badge" style="background:${m.color}15;color:${m.color};border:1px solid ${m.color}30">
+            <i class="fa-solid fa-tag" style="font-size:9px"></i> ${s}
+        </span>`).join('');
+
+    // Questions
+    const area = document.getElementById('questions-area');
+    area.innerHTML = '';
+    const scale = m.scale;
+    const isK6 = m.scaleType === 'k6';
+
+    m.questions.forEach((q, qi) => {
+        const saved = answers[currentMod][qi];
+        const card = document.createElement('div');
+        card.className = `q-card ${saved !== null ? 'answered' : ''}`;
+        card.id = `qcard-${qi}`;
+
+        let optHtml = `<div class="options-row ${isK6 ? 'options-k6' : ''}">`;
+        scale.forEach(opt => {
+            const sel = saved === opt.val;
+            optHtml += `<div class="opt-btn ${sel ? 'selected' : ''}" onclick="selectAnswer(${currentMod},${qi},${opt.val})">
+                <span class="opt-score">${opt.val}</span>
+                ${opt.label}
+            </div>`;
+        });
+        optHtml += '</div>';
+
+        card.innerHTML = `
+            <div class="q-num">Pertanyaan ${qi + 1} / ${m.questions.length} ${saved !== null ? '· <span style="color:var(--green)"><i class="fa-solid fa-circle-check"></i> Dijawab</span>' : ''}</div>
+            <div class="q-text">${q.text}</div>
+            <div class="q-note"><i class="fa-solid fa-info-circle" style="margin-right:4px"></i>${q.note}</div>
+            ${optHtml}
+        `;
+        area.appendChild(card);
+    });
+
+    // Nav buttons
+    document.getElementById('btn-prev').style.visibility = currentMod === 0 ? 'hidden' : 'visible';
+    const allAns = answers[currentMod].every(a => a !== null);
+    const btnNext = document.getElementById('btn-next');
+    btnNext.disabled = !allAns;
+    document.getElementById('btn-next-label').innerText = currentMod === modules.length - 1 ? 'Lihat Hasil' : 'Lanjut';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ANSWER SELECTION
+═══════════════════════════════════════════════════════════════ */
+function selectAnswer(mi, qi, val) {
+    answers[mi][qi] = val;
+    renderModule();
+    renderSidebar();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DEMO DATA
+═══════════════════════════════════════════════════════════════ */
+function loadDemo() {
+    // Demo: Disabilitas Fisik (Berat) + Sensorik Sedang + Mental Sedang
+    answers = [
+        [0, 2, 1],     // Sensorik: normal, kurang dengar sedang, ringan
+        [3, 2, 1, 1],  // Fisik: tidak bisa jalan, sedang perawatan diri, ringan tangan, ringan nyeri
+        [0, 1, 0],     // Kognitif: normal
+        [0, 1],        // Komunikasi: normal
+        [1, 2, 1, 2, 1, 1]  // Mental K6: rendah-moderat
+    ];
+    calcResults();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CALCULATE RESULTS
+═══════════════════════════════════════════════════════════════ */
+function calcResults() {
+    show('result-screen');
+
+    const domainKeys = ['sensorik', 'fisik', 'kognitif', 'komunikasi', 'mental'];
+    const domainLabels = ['Sensorik', 'Fisik', 'Intelektual', 'Komunikasi', 'Mental'];
+
+    /* --- Per-module analysis --- */
+    const modResults = modules.map((m, i) => {
+        const ans = answers[i];
+        const maxScore = Math.max(...ans);
+        const isK6 = m.scaleType === 'k6';
+        
+        let flagged = false, mild = false, normalFlag = false;
+        let severity = 'normal';
+
+        if (isK6) {
+            const total = ans.reduce((a, b) => a + b, 0);
+            // K6 thresholds: ≥13 severe, 5-12 moderate, <5 normal
+            if (total >= 13) { flagged = true; severity = 'berat'; }
+            else if (total >= 5) { mild = true; severity = 'sedang'; }
+            else { normalFlag = true; severity = 'normal'; }
+        } else {
+            if (maxScore >= 2) { flagged = true; severity = maxScore === 3 ? 'sangat berat' : 'sedang-berat'; }
+            else if (maxScore === 1) { mild = true; severity = 'ringan'; }
+            else { normalFlag = true; severity = 'normal'; }
         }
 
-        function renderSidebar() {
-            dom.sidebarNav.innerHTML = '';
-            let totalAnswered = 0;
-            const totalQuestions = screeningData.reduce((acc, val) => acc + val.questions.length, 0);
+        // WHODAS-like score (0–100)
+        const maxPossible = isK6 ? (ans.length * 4) : (ans.length * 3);
+        const rawSum = ans.reduce((a,b) => a+b, 0);
+        const whodasScore = Math.round(rawSum / maxPossible * 100);
 
-            screeningData.forEach((domain, idx) => {
-                const domainAnswers = answers[idx];
-                const answeredCount = domainAnswers.filter(a => a !== null).length;
-                totalAnswered += answeredCount;
-                
-                const isCompleted = answeredCount === domain.questions.length;
-                const isActive = idx === currentDomainIndex;
-                
-                const item = document.createElement('div');
-                item.className = `domain-step px-4 py-3 border-l-4 rounded-r-lg mb-1 transition-all flex items-center cursor-pointer 
-                                 ${isActive ? 'active' : 'border-transparent hover:bg-slate-50'}`;
-                if (isCompleted && !isActive) item.classList.add('completed');
-                
-                item.onclick = () => {
-                    if(idx !== currentDomainIndex) {
-                        currentDomainIndex = idx;
-                        animateContent(renderDomain);
-                        renderSidebar();
+        return { ...m, ans, maxScore, flagged, mild, severity, whodasScore };
+    });
+
+    const activeDisabilities = modResults.filter(r => r.flagged);
+    const mildModules = modResults.filter(r => r.mild);
+
+    /* --- Verdict --- */
+    let title = '', desc = '', barColor = '', tagText = '', tagColor = '';
+    const activeNames = activeDisabilities.map(r => r.title.replace('Hambatan ', ''));
+
+    if (activeDisabilities.length === 0 && mildModules.length === 0) {
+        title = 'Tidak Terindikasi Disabilitas';
+        desc = 'Berdasarkan skrining, tidak ditemukan hambatan fungsi yang signifikan. Disarankan evaluasi ulang jika kondisi berubah.';
+        barColor = 'background:#059669';
+        tagText = 'Fungsi Normal'; tagColor = '#059669';
+    } else if (activeDisabilities.length === 0 && mildModules.length > 0) {
+        title = 'Hambatan Ringan Terdeteksi';
+        desc = `Ditemukan hambatan ringan pada: <b>${mildModules.map(r=>r.title).join(', ')}</b>. Belum memenuhi ambang klasifikasi disabilitas, namun perlu pemantauan.`;
+        barColor = 'background:#d97706';
+        tagText = 'Risiko / Perlu Pemantauan'; tagColor = '#d97706';
+    } else if (activeDisabilities.length === 1) {
+        title = `Disabilitas ${activeNames[0]}`;
+        desc = `Pasien diidentifikasi sebagai <b>Penyandang Disabilitas Tunggal</b> pada kategori <b>${activeNames[0]}</b>. Memerlukan layanan dan akomodasi yang sesuai.`;
+        barColor = 'background:#4338ca';
+        tagText = 'Disabilitas Tunggal'; tagColor = '#4338ca';
+    } else {
+        title = 'Disabilitas Ganda / Multi';
+        desc = `Pasien memiliki hambatan signifikan pada lebih dari satu kategori: <b>${activeNames.join(' + ')}</b>. Tergolong Disabilitas Ganda — memerlukan pendekatan layanan komprehensif.`;
+        barColor = 'background:#dc2626';
+        tagText = 'Disabilitas Ganda'; tagColor = '#dc2626';
+    }
+
+    document.getElementById('result-bar').style = barColor;
+    document.getElementById('verdict-title').innerText = title;
+    document.getElementById('verdict-desc').innerHTML = desc;
+    document.getElementById('verdict-tag-wrap').innerHTML = `
+        <div class="verdict-tag" style="color:${tagColor};background:${tagColor}15;border-color:${tagColor}40">
+            <i class="fa-solid fa-circle-dot"></i> ${tagText}
+        </div>`;
+
+    // Badges
+    const badgesEl = document.getElementById('verdict-badges');
+    let badgesHtml = '';
+    activeDisabilities.forEach(r => {
+        badgesHtml += `<div class="vbadge" style="color:${r.color};background:${r.color}15;border-color:${r.color}40">
+            <i class="fa-solid ${r.icon}" style="margin-right:5px"></i>${r.title}
+        </div>`;
+    });
+    if (activeDisabilities.length === 0 && mildModules.length === 0) {
+        badgesHtml = `<div class="vbadge" style="color:#059669;background:#d1fae5;border-color:#6ee7b7">
+            <i class="fa-solid fa-check-circle" style="margin-right:5px"></i>Semua Fungsi Normal
+        </div>`;
+    }
+    badgesEl.innerHTML = badgesHtml;
+
+    // Radar chart
+    const radarScores = modResults.map(r => r.whodasScore);
+    renderRadar(radarScores, domainLabels);
+
+    // WHODAS bars
+    const barsEl = document.getElementById('whodas-bars');
+    barsEl.innerHTML = '';
+    modResults.forEach((r, i) => {
+        const fillColor = r.flagged ? '#dc2626' : r.mild ? '#d97706' : '#059669';
+        barsEl.innerHTML += `
+            <div class="wbar-row">
+                <div class="wbar-label">${domainLabels[i]}</div>
+                <div class="wbar-track"><div class="wbar-fill" style="width:${r.whodasScore}%;background:${fillColor}"></div></div>
+                <div class="wbar-val" style="color:${fillColor}">${r.whodasScore}</div>
+            </div>`;
+    });
+
+    // Domain rows
+    const rowsEl = document.getElementById('domain-rows');
+    rowsEl.innerHTML = '';
+    modResults.forEach(r => {
+        const rowClass = r.flagged ? 'flagged' : r.mild ? 'mild' : '';
+        const pillClass = r.flagged ? 'flagged' : r.mild ? 'mild' : 'ok';
+        const pillText = r.flagged ? `Teridentifikasi (${r.severity})` : r.mild ? 'Hambatan Ringan' : 'Normal';
+
+        let extraHtml = '';
+        if (r.flagged) {
+            extraHtml = `<div style="margin-top:6px;font-size:11px;background:#fee2e2;color:#991b1b;padding:6px 10px;border-radius:6px;border:1px solid #fca5a5">
+                <b>Indikasi:</b> ${r.uu}
+            </div>`;
+        }
+
+        rowsEl.innerHTML += `
+            <div class="domain-row ${rowClass}">
+                <div class="domain-icon-wrap" style="background:${r.color}20;color:${r.color}">
+                    <i class="fa-solid ${r.icon}"></i>
+                </div>
+                <div class="domain-row-body">
+                    <h4>${r.title}</h4>
+                    <p>Skor hambatan: <b>${r.whodasScore}/100</b> · ${r.scaleType === 'k6' ? 'K6 Kessler' : 'WG-SS'}</p>
+                    ${extraHtml}
+                </div>
+                <span class="status-pill ${pillClass}">${pillText}</span>
+            </div>`;
+    });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RADAR CHART
+═══════════════════════════════════════════════════════════════ */
+function renderRadar(data, labels) {
+    const ctx = document.getElementById('radarChart').getContext('2d');
+    if (radarInstance) radarInstance.destroy();
+
+    const maxVal = Math.max(...data);
+    const barColor = maxVal >= 67 ? '#dc2626' : maxVal >= 34 ? '#d97706' : '#4338ca';
+
+    radarInstance = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Skor Hambatan',
+                data,
+                backgroundColor: barColor + '25',
+                borderColor: barColor,
+                pointBackgroundColor: barColor,
+                pointBorderColor: '#fff',
+                pointRadius: 4,
+                borderWidth: 2,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    beginAtZero: true, min: 0, max: 100,
+                    ticks: { display: false },
+                    grid: { color: 'rgba(0,0,0,0.07)' },
+                    angleLines: { color: 'rgba(0,0,0,0.07)' },
+                    pointLabels: {
+                        font: { family: 'DM Sans', size: 12, weight: '600' },
+                        color: '#374151'
                     }
-                };
-
-                let iconHtml = `<div class="step-icon w-6 h-6 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center text-xs font-bold mr-3 transition-colors">${idx + 1}</div>`;
-                if (isCompleted) {
-                    iconHtml = `<div class="step-icon w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs mr-3"><i class="fa-solid fa-check"></i></div>`;
                 }
-
-                item.innerHTML = `
-                    ${iconHtml}
-                    <div class="flex-grow">
-                        <div class="text-sm font-semibold ${isActive ? 'text-brand-800' : 'text-slate-600'}">${domain.title.substring(3)}</div>
-                    </div>
-                `;
-                dom.sidebarNav.appendChild(item);
-            });
-
-            const progressPercent = Math.round((totalAnswered / totalQuestions) * 100);
-            dom.overallProgressBar.style.width = `${progressPercent}%`;
-            dom.overallProgressText.innerText = `${progressPercent}%`;
-        }
-
-        function renderDomain() {
-            const domain = screeningData[currentDomainIndex];
-            
-            dom.domainTitle.innerText = domain.title;
-            dom.domainIcon.className = `fa-solid ${domain.icon} text-2xl mr-3`;
-            dom.domainDesc.innerText = domain.description;
-
-            dom.questionsContainer.innerHTML = '';
-            
-            domain.questions.forEach((qText, qIdx) => {
-                const qBlock = document.createElement('div');
-                qBlock.className = "bg-white border border-slate-200 p-5 rounded-2xl shadow-sm mb-4";
-                
-                const selectedVal = answers[currentDomainIndex][qIdx];
-                const headerHtml = `
-                    <div class="flex justify-between items-start mb-4">
-                        <h4 class="text-slate-800 font-medium text-lg pr-4">
-                            ${qText}
-                        </h4>
-                        ${selectedVal !== null ? `<div class="text-brand-500"><i class="fa-solid fa-circle-check text-xl"></i></div>` : ''}
-                    </div>
-                `;
-                
-                let optionsHtml = `<div class="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">`;
-                optionsData.forEach(opt => {
-                    const isSelected = selectedVal === opt.value;
-                    const borderClass = isSelected ? 'selected border-brand-500' : 'border-slate-200';
-                    
-                    optionsHtml += `
-                        <label class="option-label border-2 ${borderClass} rounded-xl p-3 cursor-pointer text-center flex flex-col justify-center items-center h-full relative"
-                               onclick="handleSelect(${currentDomainIndex}, ${qIdx}, ${opt.value})">
-                            <input type="radio" name="d${currentDomainIndex}q${qIdx}" value="${opt.value}" ${isSelected ? 'checked' : ''}>
-                            <span class="text-sm font-semibold ${isSelected ? 'text-brand-700' : 'text-slate-600'} leading-tight">${opt.label}</span>
-                            ${isSelected ? `<span class="absolute -top-2 -right-2 w-5 h-5 bg-brand-500 rounded-full text-white text-[10px] flex items-center justify-center border-2 border-white"><i class="fa-solid fa-check"></i></span>` : ''}
-                        </label>
-                    `;
-                });
-                optionsHtml += `</div>`;
-                
-                qBlock.innerHTML = headerHtml + optionsHtml;
-                dom.questionsContainer.appendChild(qBlock);
-            });
-
-            updateNavigationControls();
-            dom.questionsContainer.scrollTop = 0;
-        }
-
-        function handleSelect(dIdx, qIdx, value) {
-            answers[dIdx][qIdx] = value;
-            renderDomain();
-            renderSidebar();
-        }
-
-        function updateNavigationControls() {
-            dom.btnPrev.style.visibility = currentDomainIndex === 0 ? 'hidden' : 'visible';
-            
-            const domainAnswers = answers[currentDomainIndex];
-            const isAllAnswered = domainAnswers.every(a => a !== null);
-            
-            if (currentDomainIndex === screeningData.length - 1) {
-                dom.nextBtnText.innerText = "Diagnosis Hasil";
-            } else {
-                dom.nextBtnText.innerText = "Selanjutnya";
-            }
-
-            if (isAllAnswered) {
-                dom.btnNext.disabled = false;
-                dom.btnNext.classList.remove('bg-slate-200', 'text-slate-400', 'cursor-not-allowed');
-                dom.btnNext.classList.add('bg-brand-600', 'text-white', 'hover:bg-brand-500');
-            } else {
-                dom.btnNext.disabled = true;
-                dom.btnNext.classList.add('bg-slate-200', 'text-slate-400', 'cursor-not-allowed');
-                dom.btnNext.classList.remove('bg-brand-600', 'text-white', 'hover:bg-brand-500');
-            }
-        }
-
-        function animateContent(callback) {
-            dom.questionsContainer.classList.remove('fade-enter-active');
-            dom.questionsContainer.classList.add('fade-exit-active');
-            setTimeout(() => {
-                callback();
-                dom.questionsContainer.classList.remove('fade-exit-active');
-                dom.questionsContainer.classList.add('fade-enter-active');
-            }, 300);
-        }
-
-        function nextDomain() {
-            if (currentDomainIndex < screeningData.length - 1) {
-                animateContent(() => {
-                    currentDomainIndex++;
-                    renderDomain();
-                    renderSidebar();
-                });
-            } else {
-                calculateResults();
-            }
-        }
-
-        function prevDomain() {
-            if (currentDomainIndex > 0) {
-                animateContent(() => {
-                    currentDomainIndex--;
-                    renderDomain();
-                    renderSidebar();
-                });
-            }
-        }
-
-        function loadSampleData() {
-            // Skenario Disabilitas Ganda: Fisik (Parah) & Sensorik (Sedang)
-            answers = [
-                [0, 2], // Sensorik (Mendengar Sedang)
-                [3, 0], // Fisik (Jalan Berat/Tidak bisa - Kursi roda)
-                [0, 0], // Intelektual
-                [0, 0]  // Mental
-            ];
-            calculateResults();
-        }
-
-        // --- Logika Penentuan Jenis Disabilitas ---
-        function calculateResults() {
-            let activeDisabilities = [];
-            let rincianHtml = "";
-            let chartData = []; // Untuk menyimpan skor max per domain untuk chart
-
-            screeningData.forEach((domain, idx) => {
-                // Seseorang dianggap memiliki disabilitas di kategori tersebut jika ada skor >= 2 (Sedang/Berat)
-                const isDisabilityActive = answers[idx].some(score => score >= 2);
-                const hasMildIssue = answers[idx].some(score => score === 1);
-                
-                let maxScore = Math.max(...answers[idx]);
-                
-                // Konversi maxScore (0-3) menjadi persentase kasar (0-100) untuk radar chart
-                // 0: 0%, 1: 33%, 2: 66%, 3: 100%
-                let chartScore = Math.round((maxScore / 3) * 100);
-                chartData.push(chartScore);
-
-                let statusBadge = '';
-                let statusText = '';
-                let examplesHtml = '';
-                
-                if (maxScore >= 2) {
-                    activeDisabilities.push(domain.title.substring(3)); // Nama tanpa angka
-                    statusBadge = '<span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-bold">Teridentifikasi</span>';
-                    statusText = 'Memerlukan intervensi dan tergolong penyandang disabilitas pada area ini.';
-                    examplesHtml = `<div class="mt-2 text-[11px] font-medium bg-red-50 text-red-800 p-2 rounded border border-red-100"><b>Indikasi Spesifik:</b><br>${domain.examples.replace(/\n/g, '<br>')}</div>`;
-                } else if (hasMildIssue) {
-                    statusBadge = '<span class="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-bold">Hambatan Ringan</span>';
-                    statusText = 'Ada hambatan ringan, namun masih belum masuk klasifikasi disabilitas utama.';
-                } else {
-                    statusBadge = '<span class="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-bold">Fungsi Normal</span>';
-                    statusText = 'Tidak ditemukan hambatan yang signifikan.';
-                }
-
-                rincianHtml += `
-                    <div class="bg-white p-4 rounded-xl border border-slate-200 flex items-start">
-                        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 mr-4 shrink-0 mt-1">
-                            <i class="fa-solid ${domain.icon}"></i>
-                        </div>
-                        <div class="flex-grow">
-                            <div class="flex justify-between items-center mb-1">
-                                <h4 class="font-bold text-slate-800 text-sm">${domain.title.substring(3)}</h4>
-                                ${statusBadge}
-                            </div>
-                            <p class="text-xs text-slate-500">${statusText}</p>
-                            ${examplesHtml}
-                        </div>
-                    </div>
-                `;
-            });
-
-            // Diagnosis Utama
-            let mainTitle = "Non-Disabilitas";
-            let mainDesc = "Berdasarkan skrining, pasien tidak memenuhi kriteria penyandang disabilitas menurut UU No.8/2016.";
-            let iconClass = "fa-user-check";
-            let badgesHtml = "";
-
-            if (activeDisabilities.length === 1) {
-                mainTitle = `Disabilitas ${activeDisabilities[0]}`;
-                mainDesc = `Pasien diidentifikasi sebagai penyandang Disabilitas Tunggal pada kategori ${activeDisabilities[0]}.`;
-                if(activeDisabilities[0].includes("Fisik")) iconClass = "fa-wheelchair";
-                else if(activeDisabilities[0].includes("Sensorik")) iconClass = "fa-eye";
-                else if(activeDisabilities[0].includes("Intelektual")) iconClass = "fa-puzzle-piece";
-                else if(activeDisabilities[0].includes("Mental")) iconClass = "fa-head-side-virus";
-                
-                badgesHtml = `<span class="bg-brand-100 text-brand-800 px-3 py-1 rounded-full text-sm font-bold border border-brand-200">Disabilitas Tunggal</span>`;
-
-            } else if (activeDisabilities.length > 1) {
-                mainTitle = "Disabilitas Ganda / Multi";
-                mainDesc = `Pasien memiliki lebih dari satu jenis disabilitas, yaitu kombinasi dari: <b>${activeDisabilities.join(' dan ')}</b>.`;
-                iconClass = "fa-people-group";
-                
-                badgesHtml = `<span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-bold border border-red-200"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Disabilitas Ganda</span>`;
-                activeDisabilities.forEach(d => {
-                    badgesHtml += `<span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-sm font-medium border border-slate-200">${d}</span>`;
-                });
-            }
-
-            // Update UI
-            document.getElementById('main-diagnosis-title').innerText = mainTitle;
-            document.getElementById('main-diagnosis-desc').innerHTML = mainDesc;
-            document.getElementById('main-diagnosis-icon').innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
-            document.getElementById('severity-badges').innerHTML = badgesHtml;
-            document.getElementById('diagnosis-list').innerHTML = rincianHtml;
-
-            // Bar warna header result
-            const colorBar = document.getElementById('result-color-bar');
-            if(activeDisabilities.length === 0) colorBar.className = "absolute top-0 left-0 w-full h-2 bg-green-500";
-            else if(activeDisabilities.length === 1) colorBar.className = "absolute top-0 left-0 w-full h-2 bg-brand-500";
-            else colorBar.className = "absolute top-0 left-0 w-full h-2 bg-red-500";
-
-            // Render Radar Chart
-            drawTypeRadarChart(chartData);
-
-            screens.landing.classList.add('hidden');
-            screens.quiz.classList.add('hidden');
-            screens.result.classList.remove('hidden');
-            window.scrollTo(0,0);
-        }
-
-        function drawTypeRadarChart(chartData) {
-            const ctx = document.getElementById('typeRadarChart').getContext('2d');
-            
-            if (typeRadarChartInstance) {
-                typeRadarChartInstance.destroy();
-            }
-
-            const labels = ["Sensorik", "Fisik", "Intelektual", "Mental"];
-
-            typeRadarChartInstance = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Intensitas Hambatan',
-                        data: chartData,
-                        backgroundColor: 'rgba(99, 102, 241, 0.2)', // Brand-500 (Indigo) transparent
-                        borderColor: '#4f46e5', // Brand-600
-                        pointBackgroundColor: '#6366f1',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: '#6366f1',
-                        borderWidth: 2,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
-                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
-                            pointLabels: {
-                                font: { family: 'Inter', size: 11, weight: '600' },
-                                color: '#475569' 
-                            },
-                            ticks: {
-                                beginAtZero: true,
-                                max: 100,
-                                stepSize: 33.33, // 0, 33(Ringan), 66(Sedang), 100(Berat)
-                                backdropColor: 'transparent',
-                                display: false // Hide numerical ticks for cleaner look
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let val = context.raw;
-                                    if(val === 0) return " Normal (0)";
-                                    if(val < 50) return " Ringan";
-                                    if(val < 90) return " Sedang";
-                                    return " Berat/Total";
-                                }
-                            }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => {
+                            const v = ctx.raw;
+                            const lvl = v >= 67 ? 'Berat' : v >= 34 ? 'Sedang' : v > 0 ? 'Ringan' : 'Normal';
+                            return ` Skor ${v}/100 — ${lvl}`;
                         }
                     }
                 }
-            });
+            }
         }
-    </script>
+    });
+}
+</script>
 </body>
 </html>
