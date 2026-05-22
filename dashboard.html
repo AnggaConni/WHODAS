@@ -2,688 +2,1294 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard GIS Disabilitas Inklusif</title>
-    
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard - Sekolah Inklusif Command Center</title>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Leaflet CSS & JS for GIS Map -->
+    <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- PapaParse untuk membaca CSV Google Sheets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
                     colors: {
-                        google: {
-                            blue: '#1a73e8',
-                            blueLight: '#e8f0fe',
-                            red: '#ea4335',
-                            yellow: '#fbbc04',
-                            green: '#34a853',
-                            gray: '#5f6368',
-                            dark: '#202124',
-                            bg: '#f8f9fa',
-                            border: '#dadce0'
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
                         }
                     }
                 }
             }
         }
     </script>
-    
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8f9fa; }
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Background pattern */
+        .bg-pattern {
+            background-color: #f8fafc;
+            background-image: radial-gradient(circle at 1px 1px, #e2e8f0 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+
+        /* Gradient accents */
+        .gradient-blue { background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%); }
+        .gradient-emerald { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .gradient-amber { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .gradient-red { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+        .gradient-slate { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); }
+
+        .timeline-line::before {
+            content: '';
+            position: absolute;
+            left: 19px;
+            top: 36px;
+            bottom: -10px;
+            width: 2px;
+            background: linear-gradient(to bottom, #cbd5e1, #e2e8f0);
+            z-index: 0;
+        }
+        .timeline-item:last-child .timeline-line::before { display: none; }
         
-        /* Google Workspace style sidebar active state */
-        .sidebar-item { transition: all 0.2s; border-radius: 0 100px 100px 0; margin-right: 16px; }
-        .sidebar-item.active { background-color: #e8f0fe; color: #1a73e8; font-weight: 600; }
-        .sidebar-item:hover:not(.active) { background-color: #f1f3f4; }
-        
-        /* Google UI Card style */
-        .g-card {
-            background: #ffffff;
-            border: 1px solid #dadce0;
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .slide-in { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+        .view-section { display: none; }
+        .view-section.active { display: flex; animation: fadeIn 0.3s ease-in-out; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.3);
+            transition: all 0.2s ease;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 6px 20px 0 rgba(37, 99, 235, 0.4);
+            transform: translateY(-1px);
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            50% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+        }
+        .pulse-dot { animation: pulseDot 2s infinite; }
+
+        .map-legend {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background: white;
+            padding: 12px 14px;
             border-radius: 12px;
-            box-shadow: none;
-            transition: box-shadow 0.2s;
-        }
-        .g-card:hover {
-            box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.05);
+            z-index: 400;
+            font-size: 11px;
         }
 
-        /* Leaflet map fix for Tailwind */
-        #map { z-index: 10; border-radius: 12px; }
+        .obj-card { transition: all 0.2s ease; }
+        .obj-card:hover { transform: translateY(-2px); }
+        .obj-card.active {
+            border-color: #2563eb !important;
+            background: linear-gradient(to right, #eff6ff, #ffffff);
+            box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.15);
+        }
 
-        /* Modal Transitions */
-        #facilityModal {
-            transition: opacity 0.3s ease-in-out;
+        .progress-bar { background: #e2e8f0; height: 6px; border-radius: 999px; overflow: hidden; position: relative; }
+        .progress-fill { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.025em;
+            text-transform: uppercase;
         }
-        #modalContent {
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+
+        .leaflet-popup-content-wrapper {
+            border-radius: 12px !important;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15) !important;
         }
-        .modal-hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-        .modal-hidden #modalContent {
-            transform: scale(0.95) translateY(-20px);
-            opacity: 0;
-        }
-        .modal-visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .modal-visible #modalContent {
-            transform: scale(1) translateY(0);
-            opacity: 1;
-        }
+        .leaflet-popup-content { margin: 12px 16px !important; font-family: 'Inter', sans-serif !important; }
     </style>
 </head>
-<body class="text-google-dark flex h-screen overflow-hidden">
+<body class="bg-slate-50 text-slate-800 h-screen flex flex-col md:flex-row overflow-hidden">
 
-    <!-- Sidebar (Google Material 3 Style) -->
-    <aside class="w-64 bg-white border-r border-google-border flex flex-col hidden md:flex shrink-0 z-20">
-        <div class="h-16 flex items-center px-6 border-b border-google-border">
-            <div class="w-8 h-8 rounded text-white bg-google-blue flex items-center justify-center mr-3 shadow-sm">
-                <i class="fa-solid fa-earth-asia"></i>
+    <!-- SIDEBAR -->
+    <aside class="w-full md:w-72 bg-white border-r border-slate-200 flex flex-col shrink-0 h-auto md:h-full z-30 relative">
+        <!-- Logo Header -->
+        <div class="p-6 border-b border-slate-100 bg-white">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 gradient-blue rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                    <i class="ph-fill ph-users-three text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-black tracking-tight leading-none text-slate-800">SekolahInklusif</h1>
+                    <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">Command Center</p>
+                </div>
             </div>
-            <span class="text-xl font-medium tracking-tight text-google-dark">GeoInklusif</span>
-        </div>
-        
-        <div class="py-4 flex-grow overflow-y-auto">
-            <a href="index.html" class="sidebar-item flex items-center px-6 py-3 text-google-gray mb-1">
-                <i class="fa-solid fa-arrow-left w-6"></i>
-                <span class="text-sm">Kembali ke Portal</span>
-            </a>
-            
-            <div class="px-6 py-2 mt-2 text-xs font-semibold text-google-gray uppercase tracking-wider">Pemetaan</div>
-            
-            <a href="#" class="sidebar-item active flex items-center px-6 py-3 mb-1">
-                <i class="fa-solid fa-map-location-dot w-6 text-google-blue"></i>
-                <span class="text-sm">Peta Inklusivitas</span>
-            </a>
-            <a href="#" class="sidebar-item flex items-center px-6 py-3 text-google-gray mb-1">
-                <i class="fa-solid fa-school w-6"></i>
-                <span class="text-sm">Sekolah & Pendidikan</span>
-            </a>
-            <a href="#" class="sidebar-item flex items-center px-6 py-3 text-google-gray mb-1">
-                <i class="fa-solid fa-building w-6"></i>
-                <span class="text-sm">Organisasi & Publik</span>
-            </a>
-            
-            <div class="px-6 py-2 mt-4 text-xs font-semibold text-google-gray uppercase tracking-wider">Analitik</div>
-            
-            <a href="#" class="sidebar-item flex items-center px-6 py-3 text-google-gray mb-1">
-                <i class="fa-solid fa-chart-line w-6"></i>
-                <span class="text-sm">Tren Data</span>
-            </a>
         </div>
 
-        <div class="p-4 border-t border-google-border">
-            <div class="flex items-center">
-                <img src="https://ui-avatars.com/api/?name=Admin+Pemda&background=1a73e8&color=fff" alt="User" class="w-9 h-9 rounded-full">
-                <div class="ml-3">
-                    <p class="text-sm font-medium text-google-dark leading-tight">Admin Pemda</p>
-                    <p class="text-xs text-google-gray">Dinas Sosial</p>
+        <div class="p-5 flex-1 overflow-y-auto hidden md:flex md:flex-col">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-3">Navigasi</p>
+            <nav class="space-y-1.5">
+                <button onclick="switchView('global')" id="nav-global" class="nav-btn w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all">
+                    <i class="ph-bold ph-squares-four text-xl"></i>
+                    <span class="flex-1">Ringkasan Global</span>
+                    <i class="ph-bold ph-caret-right text-sm opacity-50"></i>
+                </button>
+                <button onclick="switchView('sarpras')" id="nav-sarpras" class="nav-btn w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all">
+                    <i class="ph-bold ph-chart-polar text-xl"></i>
+                    <span class="flex-1">Dimensi Inklusivitas</span>
+                    <i class="ph-bold ph-caret-right text-sm opacity-50"></i>
+                </button>
+            </nav>
+
+            <!-- Quick Stats Mini -->
+            <div class="mt-6">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-3">Filter Stats</p>
+                <div class="space-y-2">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 p-3 rounded-xl border border-blue-100">
+                        <div class="flex justify-between items-center">
+                            <p class="text-xs font-semibold text-blue-700">Total Sekolah</p>
+                            <i class="ph-fill ph-buildings text-blue-500"></i>
+                        </div>
+                        <h4 class="text-2xl font-black text-blue-900 mt-1" id="mini-stat-sekolah">0</h4>
+                    </div>
+                    <div class="bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-3 rounded-xl border border-emerald-100">
+                        <div class="flex justify-between items-center">
+                            <p class="text-xs font-semibold text-emerald-700">Sangat Inklusif</p>
+                            <i class="ph-fill ph-check-circle text-emerald-500"></i>
+                        </div>
+                        <h4 class="text-2xl font-black text-emerald-900 mt-1" id="mini-stat-sangat">0</h4>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-indigo-50 to-indigo-100/50 p-3 rounded-xl border border-indigo-100">
+                        <div class="flex justify-between items-center">
+                            <p class="text-xs font-semibold text-indigo-700">Inklusif</p>
+                            <i class="ph-fill ph-users text-indigo-500"></i>
+                        </div>
+                        <h4 class="text-2xl font-black text-indigo-900 mt-1" id="mini-stat-inklusif">0</h4>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-amber-50 to-amber-100/50 p-3 rounded-xl border border-amber-100">
+                        <div class="flex justify-between items-center">
+                            <p class="text-xs font-semibold text-amber-700">Perlu Peningkatan</p>
+                            <i class="ph-fill ph-warning-circle text-amber-500"></i>
+                        </div>
+                        <h4 class="text-2xl font-black text-amber-900 mt-1" id="mini-stat-kurang">0</h4>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="mt-auto pt-6">
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Sinkronisasi G-Sheets</p>
+                        <div class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></div>
+                    </div>
+                    <p class="text-xs font-bold text-slate-700 mb-1" id="sync-status">Live & Terhubung</p>
+                    <p class="text-[10px] text-slate-500 mb-3" id="sync-time">Last sync: --</p>
+                    <button onclick="fetchData()" class="w-full btn-primary text-white text-xs font-bold px-4 py-2.5 rounded-lg flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-arrows-clockwise"></i> Segarkan Data
+                    </button>
                 </div>
             </div>
         </div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="flex-grow flex flex-col h-screen overflow-hidden bg-google-bg relative">
+    <!-- CONTENT AREA -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
         
-        <!-- Topbar -->
-        <header class="h-16 bg-white border-b border-google-border flex items-center justify-between px-6 shrink-0 z-20">
-            <div class="flex items-center">
-                <button class="md:hidden mr-4 text-google-gray hover:text-google-dark">
-                    <i class="fa-solid fa-bars text-xl"></i>
-                </button>
-                <h1 class="text-xl font-medium text-google-dark">Monitoring GIS Disabilitas</h1>
-            </div>
-            
-            <div class="flex items-center space-x-4">
-                <div class="relative hidden sm:block">
-                    <i class="fa-solid fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-google-gray text-sm"></i>
-                    <input type="text" placeholder="Cari sekolah, jalan, fasilitas..." class="bg-google-bg border border-transparent focus:border-google-blue focus:bg-white rounded-lg pl-9 pr-4 py-2 text-sm w-64 outline-none transition-all placeholder-google-gray">
-                </div>
-                <button class="text-google-gray hover:text-google-dark relative">
-                    <i class="fa-regular fa-bell text-xl"></i>
-                    <span class="absolute -top-1 -right-1 w-2 h-2 bg-google-red rounded-full"></span>
-                </button>
-            </div>
-        </header>
-
-        <!-- Dashboard Content Scrollable -->
-        <div class="flex-grow overflow-y-auto p-6 relative z-10">
-            
-            <!-- Key Metrics (KPIs) -->
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
-                <!-- KPI 1 -->
-                <div class="g-card p-5">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-sm font-medium text-google-gray mb-1">Sekolah Inklusif</p>
-                            <h3 class="text-3xl font-normal text-google-dark mb-1">45<span class="text-lg text-google-gray">/120</span></h3>
-                            <div class="flex items-center text-xs text-google-green font-medium">
-                                <i class="fa-solid fa-arrow-up mr-1"></i> 12% dari tahun lalu
-                            </div>
-                        </div>
-                        <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-google-blue">
-                            <i class="fa-solid fa-school text-lg"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- KPI 2 -->
-                <div class="g-card p-5">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-sm font-medium text-google-gray mb-1">Organisasi/Kantor Ramah</p>
-                            <h3 class="text-3xl font-normal text-google-dark mb-1">78<span class="text-lg text-google-gray">/200</span></h3>
-                            <div class="flex items-center text-xs text-google-green font-medium">
-                                <i class="fa-solid fa-arrow-up mr-1"></i> 5% dari bulan lalu
-                            </div>
-                        </div>
-                        <div class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-google-green">
-                            <i class="fa-solid fa-briefcase text-lg"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- KPI 3 -->
-                <div class="g-card p-5">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-sm font-medium text-google-gray mb-1">Skor Aksesibilitas Kota</p>
-                            <h3 class="text-3xl font-normal text-google-dark mb-1">68<span class="text-lg text-google-gray">/100</span></h3>
-                            <div class="flex items-center text-xs text-google-yellow font-medium">
-                                <i class="fa-solid fa-minus mr-1"></i> Stabil (Menengah)
-                            </div>
-                        </div>
-                        <div class="w-10 h-10 rounded-full bg-yellow-50 flex items-center justify-center text-google-yellow">
-                            <i class="fa-solid fa-wheelchair text-lg"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- KPI 4 -->
-                <div class="g-card p-5">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-sm font-medium text-google-gray mb-1">Pengaduan Fasilitas</p>
-                            <h3 class="text-3xl font-normal text-google-dark mb-1">12</h3>
-                            <div class="flex items-center text-xs text-google-red font-medium">
-                                <i class="fa-solid fa-triangle-exclamation mr-1"></i> Perlu tindak lanjut
-                            </div>
-                        </div>
-                        <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-google-red">
-                            <i class="fa-solid fa-bullhorn text-lg"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main GIS & Chart Section -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                
-                <!-- GIS Map -->
-                <div class="g-card flex flex-col lg:col-span-2 overflow-hidden h-[500px]">
-                    <div class="px-5 py-4 border-b border-google-border flex justify-between items-center bg-white z-20">
-                        <h2 class="text-base font-medium text-google-dark">Peta Aksesibilitas Spasial</h2>
-                        <div class="flex space-x-2">
-                            <span class="flex items-center text-xs text-google-gray"><span class="w-3 h-3 rounded-full bg-google-green mr-1"></span> Sudah Inklusif</span>
-                            <span class="flex items-center text-xs text-google-gray ml-3"><span class="w-3 h-3 rounded-full bg-google-yellow mr-1"></span> Parsial</span>
-                            <span class="flex items-center text-xs text-google-gray ml-3"><span class="w-3 h-3 rounded-full bg-google-red mr-1"></span> Belum Inklusif</span>
-                        </div>
-                    </div>
-                    <div id="map" class="w-full flex-grow relative z-0"></div>
-                </div>
-
-                <!-- Chart -->
-                <div class="g-card flex flex-col h-[500px]">
-                    <div class="px-5 py-4 border-b border-google-border bg-white">
-                        <h2 class="text-base font-medium text-google-dark">Status Fasilitas Berdasarkan Tipe</h2>
-                    </div>
-                    <div class="p-5 flex-grow flex items-center justify-center relative">
-                        <canvas id="complianceChart"></canvas>
-                    </div>
-                    <div class="p-4 border-t border-google-border bg-google-bg text-xs text-google-gray">
-                        *Data ditarik dari hasil audit WHODAS & Penilaian Fasilitas bulan terakhir.
-                    </div>
-                </div>
-            </div>
-
-            <!-- Data Table -->
-            <div class="g-card overflow-hidden">
-                <div class="px-5 py-4 border-b border-google-border flex justify-between items-center bg-white">
-                    <h2 class="text-base font-medium text-google-dark">Direktori Fasilitas Publik</h2>
-                    <button class="text-google-blue text-sm font-medium hover:bg-google-blueLight px-3 py-1.5 rounded transition-colors">
-                        Lihat Semua
-                    </button>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-google-bg text-google-gray border-b border-google-border">
-                            <tr>
-                                <th class="px-5 py-3 font-medium">Nama Institusi/Fasilitas</th>
-                                <th class="px-5 py-3 font-medium">Kategori</th>
-                                <th class="px-5 py-3 font-medium">Fasilitas Khusus</th>
-                                <th class="px-5 py-3 font-medium">Status Audit</th>
-                                <th class="px-5 py-3 font-medium">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-google-border bg-white">
-                            <tr class="hover:bg-google-bg transition-colors">
-                                <td class="px-5 py-3 font-medium text-google-dark flex items-center">
-                                    <div class="w-8 h-8 rounded bg-blue-50 text-google-blue flex items-center justify-center mr-3"><i class="fa-solid fa-school"></i></div>
-                                    SDN 01 Percontohan
-                                </td>
-                                <td class="px-5 py-3 text-google-gray">Pendidikan Dasar</td>
-                                <td class="px-5 py-3">
-                                    <div class="flex space-x-1">
-                                        <span class="inline-flex w-6 h-6 items-center justify-center bg-slate-100 rounded text-slate-500" title="Akses Kursi Roda"><i class="fa-solid fa-wheelchair"></i></span>
-                                        <span class="inline-flex w-6 h-6 items-center justify-center bg-slate-100 rounded text-slate-500" title="Guru Pendamping Khusus (GPK)"><i class="fa-solid fa-chalkboard-user"></i></span>
-                                        <span class="inline-flex w-6 h-6 items-center justify-center bg-slate-100 rounded text-slate-500" title="Toilet Difabel"><i class="fa-solid fa-restroom"></i></span>
-                                    </div>
-                                </td>
-                                <td class="px-5 py-3">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 border border-green-200">Sangat Inklusif</span>
-                                </td>
-                                <td class="px-5 py-3">
-                                    <button onclick="openModal('sdn01')" class="text-google-blue hover:text-blue-800 font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors">Lihat Detail</button>
-                                </td>
-                            </tr>
-                            <tr class="hover:bg-google-bg transition-colors">
-                                <td class="px-5 py-3 font-medium text-google-dark flex items-center">
-                                    <div class="w-8 h-8 rounded bg-indigo-50 text-indigo-500 flex items-center justify-center mr-3"><i class="fa-solid fa-building"></i></div>
-                                    Kantor Walikota
-                                </td>
-                                <td class="px-5 py-3 text-google-gray">Instansi Pemerintah</td>
-                                <td class="px-5 py-3">
-                                    <div class="flex space-x-1">
-                                        <span class="inline-flex w-6 h-6 items-center justify-center bg-slate-100 rounded text-slate-500" title="Akses Kursi Roda"><i class="fa-solid fa-wheelchair"></i></span>
-                                        <span class="inline-flex w-6 h-6 items-center justify-center bg-slate-100 rounded text-slate-500" title="Lift Bersuara"><i class="fa-solid fa-elevator"></i></span>
-                                    </div>
-                                </td>
-                                <td class="px-5 py-3">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 border border-green-200">Sangat Inklusif</span>
-                                </td>
-                                 <td class="px-5 py-3">
-                                    <button onclick="openModal('walikota')" class="text-google-blue hover:text-blue-800 font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors">Lihat Detail</button>
-                                </td>
-                            </tr>
-                            <tr class="hover:bg-google-bg transition-colors">
-                                <td class="px-5 py-3 font-medium text-google-dark flex items-center">
-                                    <div class="w-8 h-8 rounded bg-yellow-50 text-google-yellow flex items-center justify-center mr-3"><i class="fa-solid fa-store"></i></div>
-                                    Pasar Induk Daerah
-                                </td>
-                                <td class="px-5 py-3 text-google-gray">Fasilitas Publik</td>
-                                <td class="px-5 py-3">
-                                    <div class="flex space-x-1">
-                                        <span class="inline-flex w-6 h-6 items-center justify-center bg-slate-100 rounded text-slate-500" title="Guiding Block (Sebagian)"><i class="fa-solid fa-ellipsis"></i></span>
-                                    </div>
-                                </td>
-                                <td class="px-5 py-3">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">Parsial / Sedang Revisi</span>
-                                </td>
-                                <td class="px-5 py-3">
-                                    <button onclick="openModal('pasar')" class="text-google-blue hover:text-blue-800 font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors">Lihat Detail</button>
-                                </td>
-                            </tr>
-                            <tr class="hover:bg-google-bg transition-colors">
-                                <td class="px-5 py-3 font-medium text-google-dark flex items-center">
-                                    <div class="w-8 h-8 rounded bg-blue-50 text-google-blue flex items-center justify-center mr-3"><i class="fa-solid fa-school"></i></div>
-                                    SMA Negeri 3
-                                </td>
-                                <td class="px-5 py-3 text-google-gray">Pendidikan Menengah</td>
-                                <td class="px-5 py-3 text-google-gray text-xs italic">Belum ada data fasilitas</td>
-                                <td class="px-5 py-3">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 border border-red-200">Belum Inklusif</span>
-                                </td>
-                                <td class="px-5 py-3">
-                                    <button onclick="openModal('sman3')" class="text-google-blue hover:text-blue-800 font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors">Lihat Detail</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <footer class="mt-8 text-center text-xs text-google-gray">
-                &copy; 2026 Sistem Data Inklusif Daerah (SIDANIDA).
-            </footer>
+        <!-- Header Mobile -->
+        <div class="md:hidden bg-white border-b border-slate-200 flex z-20 shadow-sm overflow-x-auto shrink-0">
+            <button onclick="switchView('global')" id="nav-global-mobile" class="flex-1 py-4 px-2 text-sm font-bold text-blue-600 border-b-2 border-blue-600 shrink-0 text-center">Ringkasan</button>
+            <button onclick="switchView('sarpras')" id="nav-sarpras-mobile" class="flex-1 py-4 px-2 text-sm font-semibold text-slate-500 border-b-2 border-transparent shrink-0 text-center">Dimensi</button>
+            <button onclick="fetchData()" class="px-4 border-l border-slate-200 text-blue-600 bg-blue-50 shrink-0"><i class="ph-bold ph-arrows-clockwise text-xl"></i></button>
         </div>
-        
-        <!-- Modal Overlay -->
-        <div id="facilityModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center modal-hidden backdrop-blur-sm">
-            <!-- Modal Content -->
-            <div id="modalContent" class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden flex flex-col max-h-[90vh]">
+
+        <!-- Loading screen -->
+        <div id="loading-screen" class="absolute inset-0 bg-white/90 backdrop-blur-sm z-50 flex flex-col justify-center items-center">
+            <div class="relative mb-6">
+                <div class="w-16 h-16 gradient-blue rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/30">
+                    <i class="ph-fill ph-users-three text-3xl text-white"></i>
+                </div>
+                <div class="absolute -inset-3 border-4 border-blue-200 border-t-blue-600 rounded-3xl animate-spin"></div>
+            </div>
+            <h2 class="text-lg font-bold text-slate-800">Menarik Data dari Server...</h2>
+            <p class="text-xs text-slate-500 mt-1">Memproses riwayat laporan inklusivitas</p>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- VIEW 1: RINGKASAN GLOBAL                       -->
+        <!-- ============================================== -->
+        <section id="view-global" class="view-section active flex-1 flex-col overflow-hidden bg-slate-50">
+            
+            <!-- Top Header Bar -->
+            <div class="bg-white border-b border-slate-200 px-4 md:px-8 py-4 shrink-0">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div>
+                        <div class="flex items-center gap-2 text-xs text-slate-500 font-medium mb-1">
+                            <i class="ph-bold ph-house"></i>
+                            <span>Dashboard</span>
+                            <i class="ph-bold ph-caret-right text-[10px]"></i>
+                            <span class="text-blue-600 font-bold">Ringkasan Global</span>
+                        </div>
+                        <h1 class="text-2xl font-black text-slate-800 tracking-tight">Status Inklusivitas Terkini</h1>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="bg-emerald-50 border border-emerald-200 px-3 py-2 rounded-lg flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></div>
+                            <span class="text-xs font-bold text-emerald-700">Real-time Data</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-4 md:p-6">
                 
-                <!-- Modal Header -->
-                <div class="px-6 py-4 border-b border-google-border flex justify-between items-center bg-gray-50">
-                    <h2 class="text-xl font-semibold text-google-dark flex items-center">
-                        <i id="modalIcon" class="fa-solid fa-school text-google-blue mr-3"></i>
-                        <span id="modalTitle">Detail Fasilitas</span>
-                    </h2>
-                    <button onclick="closeModal()" class="text-google-gray hover:text-google-dark p-2 rounded-full hover:bg-gray-200 transition-colors">
-                        <i class="fa-solid fa-xmark text-lg"></i>
-                    </button>
+                <!-- METRIC CARDS -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-5">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-lg transition-all group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full -mr-8 -mt-8 group-hover:scale-110 transition-transform"></div>
+                        <div class="relative">
+                            <div class="w-10 h-10 gradient-blue rounded-xl flex items-center justify-center shadow-md shadow-blue-500/30 mb-3">
+                                <i class="ph-fill ph-buildings text-xl text-white"></i>
+                            </div>
+                            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Sekolah Terdata</p>
+                            <h3 class="text-3xl font-black text-slate-800 mt-1" id="stat-sekolah">0</h3>
+                            <p class="text-xs text-slate-400 mt-1" id="stat-sekolah-sub">institusi aktif</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 hover:border-indigo-300 hover:shadow-lg transition-all group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-full -mr-8 -mt-8 group-hover:scale-110 transition-transform"></div>
+                        <div class="relative">
+                            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-500/30 mb-3">
+                                <i class="ph-fill ph-chart-polar text-xl text-white"></i>
+                            </div>
+                            <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Indikator</p>
+                            <h3 class="text-3xl font-black text-slate-800 mt-1" id="stat-objek">0</h3>
+                            <p class="text-xs text-slate-400 mt-1">dimensi direkam</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 hover:border-red-300 hover:shadow-lg transition-all group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-red-50 rounded-full -mr-8 -mt-8 group-hover:scale-110 transition-transform"></div>
+                        <div class="relative">
+                            <div class="w-10 h-10 gradient-red rounded-xl flex items-center justify-center shadow-md shadow-red-500/30 mb-3">
+                                <i class="ph-fill ph-warning text-xl text-white"></i>
+                            </div>
+                            <p class="text-[11px] font-bold text-red-500 uppercase tracking-wider">Isu Prioritas</p>
+                            <h3 class="text-3xl font-black text-red-600 mt-1" id="stat-kritis">0</h3>
+                            <p class="text-xs text-slate-400 mt-1">sekolah kurang inklusif</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 hover:border-emerald-300 hover:shadow-lg transition-all group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-full -mr-8 -mt-8 group-hover:scale-110 transition-transform"></div>
+                        <div class="relative">
+                            <div class="w-10 h-10 gradient-emerald rounded-xl flex items-center justify-center shadow-md shadow-emerald-500/30 mb-3">
+                                <i class="ph-fill ph-check-circle text-xl text-white"></i>
+                            </div>
+                            <p class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Sangat Inklusif</p>
+                            <h3 class="text-3xl font-black text-emerald-700 mt-1" id="stat-logs">0</h3>
+                            <p class="text-xs text-slate-400 mt-1">sekolah hijau</p>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Modal Body (Scrollable) -->
-                <div class="p-6 overflow-y-auto">
-                    <div class="flex flex-col md:flex-row gap-6 mb-6">
-                        <!-- Image Placeholder -->
-                        <div class="w-full md:w-1/3 aspect-video bg-gray-200 rounded-lg flex items-center justify-center relative overflow-hidden">
-                            <img src="https://ui-avatars.com/api/?name=Fasilitas&background=1a73e8&color=fff&size=200" alt="Fasilitas" class="absolute inset-0 w-full h-full object-cover opacity-20">
-                            <i class="fa-solid fa-image text-4xl text-gray-400 z-10"></i>
+                <!-- 2 Column Section: Map + Side Stats -->
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 md:gap-5">
+                    
+                    <!-- MAP -->
+                    <div class="xl:col-span-2 bg-white rounded-2xl border border-slate-200 overflow-hidden flex flex-col h-[500px] xl:h-[620px]">
+                        <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between bg-gradient-to-r from-slate-50 to-white shrink-0">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="ph-bold ph-map-trifold text-blue-600 text-lg"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-slate-800">Peta Persebaran Skor</h3>
+                                    <p class="text-xs text-slate-500">Visualisasi geografis rata-rata dimensi</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <select id="filter-provinsi-global" onchange="filterDataGlobal()" class="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="ALL">🗺️ Semua Provinsi</option>
+                                </select>
+                                <select id="filter-sekolah-global" onchange="filterDataGlobal()" class="px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="ALL">🌐 Semua Sekolah</option>
+                                </select>
+                            </div>
+
+                        </div>
+                        <div id="global-map" class="w-full flex-1 relative z-0"></div>
+                    </div>
+
+                    <!-- Side Panel: Distribution & Top Issues -->
+                    <div class="space-y-4 md:space-y-5">
+                        
+                        <!-- Distribution Donut -->
+                        <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-9 h-9 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="ph-bold ph-chart-pie-slice text-purple-600 text-lg"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-slate-800 text-sm">Distribusi Kategori</h3>
+                                    <p class="text-xs text-slate-500">Berdasarkan total indikator</p>
+                                </div>
+                            </div>
+                            <div id="distribution-bars" class="space-y-3">
+                                <!-- diisi JS -->
+                            </div>
+                        </div>
+
+                        <!-- Top Sekolah dengan Issue -->
+                        <div class="bg-white rounded-2xl border border-slate-200 p-5">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-9 h-9 bg-amber-100 rounded-lg flex items-center justify-center">
+                                    <i class="ph-bold ph-trend-down text-amber-600 text-lg"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-slate-800 text-sm">Prioritas Pendampingan</h3>
+                                    <p class="text-xs text-slate-500">Sekolah dengan skor terendah</p>
+                                </div>
+                            </div>
+                            <div id="top-sekolah-list" class="space-y-2">
+                                <!-- diisi JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="mt-5 bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                    <div class="p-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex items-center gap-3">
+                        <div class="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="ph-bold ph-pulse text-blue-600 text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-800">Aktivitas Laporan Terbaru</h3>
+                            <p class="text-xs text-slate-500">5 dimensi terkini diukur dari sistem</p>
+                        </div>
+                    </div>
+                    <div id="recent-activity" class="divide-y divide-slate-100">
+                        <!-- diisi JS -->
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- VIEW 2: SARPRAS MONITORING                     -->
+        <!-- ============================================== -->
+        <section id="view-sarpras" class="view-section flex-1 flex-col overflow-hidden bg-slate-50">
+            
+            <!-- Top Header -->
+            <div class="bg-white border-b border-slate-200 px-4 md:px-8 py-4 shrink-0">
+                <div class="flex items-center gap-2 text-xs text-slate-500 font-medium mb-1">
+                    <i class="ph-bold ph-house"></i>
+                    <span>Dashboard</span>
+                    <i class="ph-bold ph-caret-right text-[10px]"></i>
+                    <span class="text-blue-600 font-bold">Dimensi Inklusivitas</span>
+                </div>
+                <h1 class="text-2xl font-black text-slate-800 tracking-tight">Audit Inklusivitas Sekolah</h1>
+                <p class="text-xs text-slate-500 mt-1">Pilih kartu dimensi untuk melihat tren evaluasi sekolah</p>
+            </div>
+
+            <div class="flex-1 overflow-hidden p-4 md:p-5">
+                <div class="flex flex-col lg:flex-row gap-4 md:gap-5 h-full min-h-0">
+                    
+                    <!-- KOLOM KIRI: List Dimensi -->
+                    <div class="flex-1 flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden min-w-0">
+                        
+                        <!-- Filter Bar -->
+                        <div class="p-4 md:p-5 border-b border-slate-200 bg-white shrink-0">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5">
+                                <div class="relative lg:col-span-1">
+                                    <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    <input type="text" id="filter-text" oninput="renderSarprasTable()" placeholder="Cari..." class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition">
+                                </div>
+
+                                <select id="filter-provinsi-sarpras" onchange="renderSarprasTable()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                                    <option value="ALL">🗺️ Semua Provinsi</option>
+                                </select>
+                                <select id="filter-sekolah-sarpras" onchange="renderSarprasTable()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                                    <option value="ALL">🏫 Semua Sekolah</option>
+                                </select>
+                                <select id="filter-jenis" onchange="renderSarprasTable()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                                    <option value="ALL">📦 Semua Dimensi</option>
+                                </select>
+                                <select id="filter-kondisi" onchange="renderSarprasTable()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                                    <option value="ALL">⚙️ Semua Status</option>
+                                    <option value="Sangat Inklusif">✅ Sangat Inklusif</option>
+                                    <option value="Inklusif">🔵 Inklusif</option>
+                                    <option value="Menuju Inklusif">🔶 Menuju Inklusif</option>
+                                    <option value="Kurang Inklusif">🔴 Kurang Inklusif</option>
+                                </select>
+                                <select id="filter-auditor" onchange="renderSarprasTable()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition">
+                                    <option value="ALL">👤 Semua Pengisi</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Quick Stats Filter Result -->
+                            <div class="grid grid-cols-3 gap-2 mt-3">
+                                <div class="bg-blue-50 border border-blue-100 px-3 py-2 rounded-lg">
+                                    <p class="text-[10px] font-bold text-blue-600 uppercase">Tampil</p>
+                                    <p class="text-lg font-black text-blue-700"><span id="audit-total-objek">0</span> <span class="text-xs font-semibold">data</span></p>
+                                </div>
+                                <div class="bg-emerald-50 border border-emerald-100 px-3 py-2 rounded-lg">
+                                    <p class="text-[10px] font-bold text-emerald-600 uppercase">Sangat Inklusif</p>
+                                    <p class="text-lg font-black text-emerald-700" id="audit-total-baik">0</p>
+                                </div>
+                                <div class="bg-red-50 border border-red-100 px-3 py-2 rounded-lg">
+                                    <p class="text-[10px] font-bold text-red-600 uppercase">Perlu Fokus</p>
+                                    <p class="text-lg font-black text-red-700" id="audit-total-rusak">0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Table Area -->
+                        <div class="flex-1 overflow-auto bg-pattern p-4 md:p-5">
+                            <div class="grid grid-cols-1 gap-2.5" id="sarpras-table-body">
+                                <!-- Diisi JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KOLOM KANAN: TIMELINE -->
+                    <div class="w-full lg:w-[440px] shrink-0 hidden lg:flex flex-col bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                        <div class="p-6 gradient-slate text-white relative shrink-0 overflow-hidden">
+                            <i class="ph-fill ph-clock-counter-clockwise absolute -right-6 -bottom-6 text-9xl opacity-10"></i>
+                            <div class="relative">
+                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/15 rounded-md text-[10px] font-bold uppercase tracking-wider mb-3 backdrop-blur border border-white/10" id="tl-kategori">
+                                    <i class="ph-bold ph-info"></i>
+                                    Timeline Analysis
+                                </div>
+                                <h2 class="text-xl font-black leading-tight mb-1" id="tl-objek-nama">Pilih Dimensi</h2>
+                                <p class="text-xs text-slate-300 flex items-center gap-1" id="tl-sekolah-nama">
+                                    <i class="ph-bold ph-graduation-cap"></i>
+                                    <span>Klik kartu dimensi untuk memuat data</span>
+                                </p>
+                            </div>
                         </div>
                         
-                        <!-- Quick Info -->
-                        <div class="w-full md:w-2/3">
-                            <div class="mb-4">
-                                <span class="text-xs font-semibold text-google-gray uppercase tracking-wider">Kategori</span>
-                                <p id="modalCategory" class="text-google-dark font-medium">Pendidikan Dasar</p>
-                            </div>
-                            <div class="mb-4">
-                                <span class="text-xs font-semibold text-google-gray uppercase tracking-wider">Status Aksesibilitas</span>
-                                <div id="modalStatusContainer" class="mt-1">
-                                   <!-- Status Badge Injected Here -->
+                        <div class="p-5 bg-gradient-to-br from-slate-50 to-white border-b border-slate-200 text-center shrink-0" id="tl-trend-box">
+                            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status Tren</p>
+                            <h3 class="text-base font-bold text-slate-400 mt-1">Belum Ada Data</h3>
+                        </div>
+
+                        <div class="flex-1 overflow-y-auto bg-white" id="tl-history-list">
+                            <div class="text-center p-12 text-slate-400">
+                                <div class="w-16 h-16 mx-auto bg-slate-100 rounded-2xl flex items-center justify-center mb-3">
+                                    <i class="ph-fill ph-hand-pointing text-3xl text-slate-300"></i>
                                 </div>
-                            </div>
-                            <div>
-                                <span class="text-xs font-semibold text-google-gray uppercase tracking-wider">Skor Audit Terakhir</span>
-                                <div class="flex items-center mt-1">
-                                    <div class="w-full bg-gray-200 rounded-full h-2.5 mr-3">
-                                        <div id="modalScoreBar" class="bg-google-green h-2.5 rounded-full" style="width: 85%"></div>
-                                    </div>
-                                    <span id="modalScoreText" class="text-sm font-bold text-google-dark">85/100</span>
-                                </div>
+                                <p class="text-sm font-bold text-slate-500">Pilih Area Dimensi</p>
+                                <p class="text-xs text-slate-400 mt-1">Klik salah satu kartu di daftar</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Detailed Facilities Checklist -->
-                    <h3 class="text-sm font-semibold text-google-dark border-b border-google-border pb-2 mb-4">Rincian Fasilitas Inklusif</h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 text-sm" id="modalChecklist">
-                        <!-- Checklist Items Injected Here -->
-                    </div>
-                    
-                    <!-- Notes -->
-                    <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <h4 class="text-xs font-bold text-yellow-800 uppercase mb-1"><i class="fa-solid fa-clipboard-list mr-1"></i> Catatan Auditor</h4>
-                        <p id="modalNotes" class="text-sm text-yellow-900">Ramp pada pintu utama sudah sesuai standar kemiringan. Namun toilet difabel perlu perbaikan pada pegangan (handrail).</p>
-                    </div>
-
-                </div>
-
-                <!-- Modal Footer -->
-                <div class="px-6 py-4 border-t border-google-border bg-gray-50 flex justify-end">
-                    <button onclick="closeModal()" class="px-4 py-2 bg-white border border-google-border text-google-dark rounded hover:bg-gray-100 font-medium transition-colors">Tutup</button>
-                    <button class="ml-3 px-4 py-2 bg-google-blue text-white rounded hover:bg-blue-700 font-medium transition-colors shadow-sm">Unduh Laporan PDF</button>
                 </div>
             </div>
-        </div>
+
+            <!-- Mobile Modal Timeline -->
+            <div id="modal-timeline-mobile" class="fixed inset-0 bg-slate-900/80 z-[200] hidden flex-col justify-end items-center p-0 backdrop-blur-sm transition-opacity lg:hidden">
+                <div class="bg-white rounded-t-3xl w-full max-h-[90vh] flex flex-col shadow-2xl h-full">
+                    <div class="p-5 gradient-slate text-white rounded-t-3xl flex justify-between items-center sticky top-0 z-10">
+                        <div class="flex-1 min-w-0 pr-3">
+                            <h3 class="font-bold text-lg leading-tight truncate" id="tl-objek-nama-mobile">Dimensi</h3>
+                            <p class="text-[10px] text-slate-300 uppercase tracking-widest mt-1 truncate" id="tl-sekolah-nama-mobile">Nama Sekolah</p>
+                        </div>
+                        <button onclick="closeTimelineMobile()" class="bg-white/20 hover:bg-white/30 p-2 rounded-full text-white transition shrink-0"><i class="ph-bold ph-x text-lg"></i></button>
+                    </div>
+                    <div class="p-4 bg-gradient-to-br from-slate-50 to-white border-b border-slate-200 text-center shrink-0" id="tl-trend-box-mobile"></div>
+                    <div class="p-5 flex-1 overflow-y-auto bg-white" id="tl-history-list-mobile"></div>
+                </div>
+            </div>
+
+        </section>
 
     </main>
 
+    <!-- JS LOGIC -->
     <script>
-        // --- 1. INISIALISASI LEAFLET GIS MAP ---
-        // Menggunakan koordinat dummy (Contoh: Pusat Jakarta)
-        const map = L.map('map', { zoomControl: false }).setView([-6.2088, 106.8456], 13);
+        // Link CSV Output Sheet Anda yang telah dikonversi
+        const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4SdSn-ANX5-Mgf1mvLJ1hxhb4PRv4n5piAMOrJU58ZU14oksjbMLLQSpDPfL1ocHErLogd02k9ChK/pub?output=csv";
+
+        let rawData = [];
+        let allReports = [];
+        let groupedData = {};
+        let flatObjects = [];
+        let activeObjId = null;
         
-        // Pindahkan kontrol zoom ke kanan bawah ala Google Maps
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
+        let map = null;
+        let mapLayer = null;
 
-        // Gunakan Tile dari OpenStreetMap dengan filter abu-abu agar terlihat clean & modern
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-            subdomains: 'abcd',
-            maxZoom: 20
-        }).addTo(map);
+        const bobotKondisi = { "Sangat Inklusif": 4, "Inklusif": 3, "Menuju Inklusif": 2, "Kurang Inklusif": 1 };
 
-        // Custom Icons untuk marker Leaflet
-        const greenIcon = L.divIcon({
-            className: 'custom-div-icon',
-            html: "<div style='background-color:#34a853; width:16px; height:16px; border-radius:50%; border:2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.4);'></div>",
-            iconSize: [16, 16], iconAnchor: [8, 8]
-        });
-        
-        const redIcon = L.divIcon({
-            className: 'custom-div-icon',
-            html: "<div style='background-color:#ea4335; width:16px; height:16px; border-radius:50%; border:2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.4);'></div>",
-            iconSize: [16, 16], iconAnchor: [8, 8]
-        });
+        const NAV_ACTIVE = "nav-btn w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all gradient-blue text-white shadow-lg shadow-blue-500/30";
+        const NAV_INACTIVE = "nav-btn w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all text-slate-600 hover:bg-blue-50 hover:text-blue-600";
 
-        const yellowIcon = L.divIcon({
-            className: 'custom-div-icon',
-            html: "<div style='background-color:#fbbc04; width:16px; height:16px; border-radius:50%; border:2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.4);'></div>",
-            iconSize: [16, 16], iconAnchor: [8, 8]
-        });
+        // Fungsi Pseudo Randomizer Hash untuk menaruh marker GPS palsu apabila form tidak punya Lat/Lng
+        function hashStr(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) { hash = str.charCodeAt(i) + ((hash << 5) - hash); }
+            return hash;
+        }
+        function pseudoRandom(seed) {
+            let x = Math.sin(seed++) * 10000;
+            return x - Math.floor(x);
+        }
 
-        // Menambahkan Titik (Markers) Dummy Sekolah & Kantor
-        L.marker([-6.2000, 106.8400], {icon: greenIcon}).addTo(map)
-         .bindPopup('<b>SDN 01 Percontohan</b><br>Status: Sangat Inklusif<br><button onclick="openModal(\'sdn01\')" class="text-google-blue text-xs font-medium hover:underline mt-1">Lihat Detail Audit</button>');
-         
-        L.marker([-6.2150, 106.8500], {icon: greenIcon}).addTo(map)
-         .bindPopup('<b>Kantor Walikota</b><br>Status: Sangat Inklusif<br><button onclick="openModal(\'walikota\')" class="text-google-blue text-xs font-medium hover:underline mt-1">Lihat Detail Audit</button>');
-         
-        L.marker([-6.2050, 106.8600], {icon: yellowIcon}).addTo(map)
-         .bindPopup('<b>Pasar Induk</b><br>Status: Parsial<br><button onclick="openModal(\'pasar\')" class="text-google-blue text-xs font-medium hover:underline mt-1">Lihat Detail Audit</button>');
-         
-        L.marker([-6.1900, 106.8300], {icon: redIcon}).addTo(map)
-         .bindPopup('<b>SMA Negeri 3</b><br>Status: Belum Inklusif<br><button onclick="openModal(\'sman3\')" class="text-google-blue text-xs font-medium hover:underline mt-1">Lihat Detail Audit</button>');
-
-        L.marker([-6.2200, 106.8350], {icon: greenIcon}).addTo(map)
-         .bindPopup('<b>Perpustakaan Daerah</b><br>Status: Sangat Inklusif<br>Fasilitas: Buku Braille, Ramp.');
-
-         
-        // --- 2. INISIALISASI CHART.JS ---
-        const ctx = document.getElementById('complianceChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Sangat Inklusif', 'Parsial / Perbaikan', 'Belum Inklusif'],
-                datasets: [{
-                    data: [45, 35, 20],
-                    backgroundColor: [
-                        '#34a853', // Green
-                        '#fbbc04', // Yellow
-                        '#ea4335'  // Red
-                    ],
-                    borderWidth: 0,
-                    hoverOffset: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '75%', // Ketebalan donut
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 20,
-                            font: { family: 'Inter', size: 12 }
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: '#202124',
-                        titleFont: { family: 'Inter' },
-                        bodyFont: { family: 'Inter' }
-                    }
-                }
-            },
-            // Menambahkan tulisan di tengah Donut
-            plugins: [{
-                id: 'textCenter',
-                beforeDraw: function(chart) {
-                    var width = chart.width,
-                        height = chart.height,
-                        ctx = chart.ctx;
-
-                    ctx.restore();
-                    var fontSize = (height / 120).toFixed(2);
-                    ctx.font = "bold " + fontSize + "em Inter";
-                    ctx.textBaseline = "middle";
-                    ctx.fillStyle = "#202124";
-
-                    var text = "123", // Total audit
-                        textX = Math.round((width - ctx.measureText(text).width) / 2),
-                        textY = height / 2.3;
-
-                    ctx.fillText(text, textX, textY);
-                    
-                    ctx.font = "normal " + (fontSize*0.4) + "em Inter";
-                    ctx.fillStyle = "#5f6368";
-                    var text2 = "Total Fasilitas";
-                    var text2X = Math.round((width - ctx.measureText(text2).width) / 2);
-                    ctx.fillText(text2, text2X, textY + 25);
-                    ctx.save();
-                }
-            }]
-        });
-
-        // --- 3. MODAL LOGIC & DATA DUMMY ---
-        const facilityData = {
-            'sdn01': {
-                title: 'SDN 01 Percontohan',
-                icon: 'fa-school',
-                category: 'Pendidikan Dasar',
-                status: 'Sangat Inklusif',
-                statusClass: 'bg-green-100 text-green-800 border-green-200',
-                score: 88,
-                scoreColor: 'bg-google-green',
-                notes: 'Secara umum sudah sangat baik. Guru Pendamping Khusus (GPK) aktif. Ramp kursi roda tersedia di seluruh lantai 1. Lift untuk ke lantai 2 berfungsi baik.',
-                checklist: [
-                    { label: 'Akses Kursi Roda (Ramp)', check: true },
-                    { label: 'Toilet Difabel', check: true },
-                    { label: 'Guru Pendamping Khusus', check: true },
-                    { label: 'Materi Belajar Braille/Audio', check: false },
-                    { label: 'Guiding Block (Jalur Tunanetra)', check: true },
-                    { label: 'Ruang Sensorik Integrasi', check: true }
-                ]
-            },
-            'walikota': {
-                title: 'Kantor Walikota',
-                icon: 'fa-building',
-                category: 'Instansi Pemerintah',
-                status: 'Sangat Inklusif',
-                statusClass: 'bg-green-100 text-green-800 border-green-200',
-                score: 92,
-                scoreColor: 'bg-google-green',
-                notes: 'Telah memenuhi standar gedung ramah difabel. Lift dilengkapi tombol braille dan suara indikator lantai. Loket pelayanan khusus difabel tersedia di lantai dasar.',
-                checklist: [
-                    { label: 'Akses Kursi Roda (Ramp)', check: true },
-                    { label: 'Toilet Difabel', check: true },
-                    { label: 'Lift Bersuara & Braille', check: true },
-                    { label: 'Loket Pelayanan Khusus', check: true },
-                    { label: 'Guiding Block (Jalur Tunanetra)', check: true },
-                    { label: 'Parkir Khusus Difabel', check: true }
-                ]
-            },
-            'pasar': {
-                title: 'Pasar Induk Daerah',
-                icon: 'fa-store',
-                category: 'Fasilitas Publik',
-                status: 'Parsial / Sedang Revisi',
-                statusClass: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-                score: 55,
-                scoreColor: 'bg-google-yellow',
-                notes: 'Akses masuk utama bisa dilalui kursi roda, namun area los sayur jalannya terlalu sempit. Guiding block ada tapi terhalang lapak pedagang di beberapa titik. Sedang dalam tahap sosialisasi penertiban lapak.',
-                checklist: [
-                    { label: 'Akses Kursi Roda (Ramp)', check: true },
-                    { label: 'Toilet Difabel', check: false },
-                    { label: 'Jalur Evakuasi Ramah Difabel', check: false },
-                    { label: 'Guiding Block (Jalur Tunanetra)', check: true },
-                    { label: 'Papan Informasi Visual Jelas', check: false }
-                ]
-            },
-            'sman3': {
-                title: 'SMA Negeri 3',
-                icon: 'fa-school',
-                category: 'Pendidikan Menengah',
-                status: 'Belum Inklusif',
-                statusClass: 'bg-red-100 text-red-800 border-red-200',
-                score: 25,
-                scoreColor: 'bg-google-red',
-                notes: 'Bangunan lama dengan banyak undakan. Tidak memiliki toilet difabel dan belum ada akses untuk siswa pengguna kursi roda ke lantai 2 dan 3. Belum menerima siswa inklusi pada tahun ajaran ini.',
-                checklist: [
-                    { label: 'Akses Kursi Roda (Ramp)', check: false },
-                    { label: 'Toilet Difabel', check: false },
-                    { label: 'Guru Pendamping Khusus', check: false },
-                    { label: 'Guiding Block (Jalur Tunanetra)', check: false },
-                    { label: 'Lift Gedung', check: false }
-                ]
-            }
+        window.onload = () => {
+            document.getElementById('nav-global').className = NAV_ACTIVE;
+            document.getElementById('nav-sarpras').className = NAV_INACTIVE;
+            fetchData();
         };
 
-        const modal = document.getElementById('facilityModal');
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
 
-        function openModal(facilityId) {
-            const data = facilityData[facilityId];
-            if (!data) return;
+            document.getElementById('nav-global').className = NAV_INACTIVE;
+            document.getElementById('nav-sarpras').className = NAV_INACTIVE;
+            document.getElementById('nav-global-mobile').className = "flex-1 py-4 px-2 text-sm font-semibold text-slate-500 border-b-2 border-transparent shrink-0 text-center";
+            document.getElementById('nav-sarpras-mobile').className = "flex-1 py-4 px-2 text-sm font-semibold text-slate-500 border-b-2 border-transparent shrink-0 text-center";
 
-            // Populate Modal
-            document.getElementById('modalTitle').innerText = data.title;
-            document.getElementById('modalIcon').className = `fa-solid ${data.icon} text-google-blue mr-3`;
-            document.getElementById('modalCategory').innerText = data.category;
-            
-            document.getElementById('modalStatusContainer').innerHTML = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${data.statusClass} border">${data.status}</span>`;
-            
-            document.getElementById('modalScoreText').innerText = `${data.score}/100`;
-            document.getElementById('modalScoreBar').style.width = `${data.score}%`;
-            document.getElementById('modalScoreBar').className = `${data.scoreColor} h-2.5 rounded-full`;
-            
-            document.getElementById('modalNotes').innerText = data.notes;
+            if (viewId === 'global') {
+                document.getElementById('nav-global').className = NAV_ACTIVE;
+                document.getElementById('nav-global-mobile').className = "flex-1 py-4 px-2 text-sm font-bold text-blue-600 border-b-2 border-blue-600 shrink-0 text-center";
+                setTimeout(() => { if(!map) initMap(); else map.invalidateSize(); filterDataGlobal(); }, 100);
+            } else if (viewId === 'sarpras') {
+                document.getElementById('nav-sarpras').className = NAV_ACTIVE;
+                document.getElementById('nav-sarpras-mobile').className = "flex-1 py-4 px-2 text-sm font-bold text-blue-600 border-b-2 border-blue-600 shrink-0 text-center";
+                renderSarprasTable();
+            }
+        }
 
-            // Populate Checklist
-            const checklistContainer = document.getElementById('modalChecklist');
-            checklistContainer.innerHTML = '';
-            data.checklist.forEach(item => {
-                const iconHtml = item.check 
-                    ? '<i class="fa-solid fa-circle-check text-google-green mr-2"></i>' 
-                    : '<i class="fa-solid fa-circle-xmark text-google-red mr-2 opacity-70"></i>';
-                const textClass = item.check ? 'text-google-dark' : 'text-google-gray line-through opacity-70';
+        function fetchData() {
+            document.getElementById('loading-screen').classList.remove('hidden');
+            document.getElementById('loading-screen').classList.add('flex');
+
+            Papa.parse(CSV_URL, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    processCSVData(results.data);
+                    const now = new Date();
+                    document.getElementById('sync-time').innerText = `Last sync: ${now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})}`;
+                },
+                error: function(err) {
+                    alert("Gagal mengambil data dari Google Sheets. Pastikan Spreadsheet dipublikasikan sebagai CSV.");
+                    document.getElementById('loading-screen').classList.add('hidden');
+                }
+            });
+        }
+
+        function processCSVData(rows) {
+            allReports = [];
+            groupedData = {};
+            flatObjects = [];
+            const processedIds = new Set();
+
+            rows.forEach((row, idx) => {
+                let namaSekolah = "Sekolah " + (idx + 1);
+                let npsn = "NPSN_" + (idx + 1);
+                let inspektur = "-";
+                let provinsi = "Tidak Diketahui";
+                let timestamp = new Date().toISOString();
+                let lat = null;
+                let lng = null;
+
+                let scores = {};
+                let files = {};
+
+                // 1. Ekstraksi Metadata Dasar & JSON Payload
+                for (let key in row) {
+                    const kLow = key.toLowerCase();
+                    let val = row[key] ? String(row[key]).trim() : "";
+                    if (val === "") continue;
+
+                    if (kLow.includes("sekolah") && !kLow.includes("npsn")) namaSekolah = val;
+                    else if (kLow.includes("npsn") || kLow.includes("kode")) npsn = val;
+                    else if (kLow.includes("provinsi") || kLow.includes("kabupaten") || kLow.includes("kota")) provinsi = val;
+                    else if ((kLow.includes("inspektur") || kLow.includes("pic") || kLow.includes("nama") || kLow.includes("asesor")) && !kLow.includes("sekolah")) inspektur = val;
+                    else if (kLow.includes("timestamp") || kLow.includes("waktu")) timestamp = val;
+                    else if (kLow.includes("latitude") || kLow.includes("lat")) lat = parseFloat(val);
+                    else if (kLow.includes("longitude") || kLow.includes("lng") || kLow.includes("long")) lng = parseFloat(val);
+                    
+                    // Parsing JSON Payload Inklusivitas (jika ada kolom yang isinya JSON string)
+                    if (val.startsWith("{") && val.includes('"auditData"')) {
+                        try {
+                            let parsed = JSON.parse(val);
+                            if (parsed.auditData) {
+                                for (let dKey in parsed.auditData) {
+                                    scores[dKey] = parseInt(parsed.auditData[dKey]);
+                                }
+                            }
+                            if (parsed.uploadedFiles) {
+                                files = parsed.uploadedFiles;
+                            }
+                        } catch(e) { console.error("Bukan JSON valid", e); }
+                    } 
+                    else {
+                        // Fallback: Jika data masih terpisah-pisah per kolom bernilai 1-4
+                        let match = val.match(/^(\d)$/);
+                        if (match && !val.startsWith("{") && !val.startsWith("[")) {
+                            let num = parseInt(match[1]);
+                            if (num >= 1 && num <= 4) scores[key] = num;
+                        }
+                    }
+                }
+
+                // Generasi GPS Acak Jika tidak ada agar peta tetap berisi
+                if (!lat || !lng) {
+                    let seed = hashStr(npsn);
+                    lat = -2.0 + (pseudoRandom(seed) * 10 - 5); 
+                    lng = 118.0 + (pseudoRandom(seed + 1) * 30 - 15);
+                }
+
+                let payloads = [];
                 
-                checklistContainer.innerHTML += `
-                    <div class="flex items-center">
-                        ${iconHtml} <span class="${textClass}">${item.label}</span>
-                    </div>
-                `;
+                // Mapping Skor ke 6 Dimensi Inklusivitas
+                if (Object.keys(scores).length > 0) {
+                    let dimGroups = {
+                        "Kebijakan": { total: 0, count: 0, id: "dim1", file: "" },
+                        "Sumber Daya": { total: 0, count: 0, id: "dim2", file: "" },
+                        "Pembelajaran": { total: 0, count: 0, id: "dim3", file: "" },
+                        "Dukungan": { total: 0, count: 0, id: "dim4", file: "" },
+                        "Partisipasi": { total: 0, count: 0, id: "dim5", file: "" },
+                        "Outcome": { total: 0, count: 0, id: "dim6", file: "" },
+                        "Lainnya": { total: 0, count: 0, id: "dim7", file: "" }
+                    };
+
+                    for (let k in scores) {
+                        let kLow = k.toLowerCase();
+                        let target = "Lainnya";
+                        if (kLow.includes("d1_") || kLow.includes("kebijakan")) target = "Kebijakan";
+                        else if (kLow.includes("d2_") || kLow.includes("sumber")) target = "Sumber Daya";
+                        else if (kLow.includes("d3_") || kLow.includes("pembelajaran")) target = "Pembelajaran";
+                        else if (kLow.includes("d4_") || kLow.includes("dukungan")) target = "Dukungan";
+                        else if (kLow.includes("d5_") || kLow.includes("partisipasi")) target = "Partisipasi";
+                        else if (kLow.includes("d6_") || kLow.includes("outcome")) target = "Outcome";
+
+                        dimGroups[target].total += scores[k]; 
+                        dimGroups[target].count++;
+                        // Set foto (mengambil salah satu file yang tersedia di dimensi tersebut)
+                        if (files[k]) dimGroups[target].file = files[k];
+                    }
+
+                    for (let dim in dimGroups) {
+                        if (dimGroups[dim].count > 0) {
+                            let avg = dimGroups[dim].total / dimGroups[dim].count;
+                            let kondisi = "";
+                            if (avg >= 3.5) kondisi = "Sangat Inklusif";
+                            else if (avg >= 2.5) kondisi = "Inklusif";
+                            else if (avg >= 1.5) kondisi = "Menuju Inklusif";
+                            else kondisi = "Kurang Inklusif";
+
+                            payloads.push({
+                                id: dimGroups[dim].id,
+                                objek: dim,
+                                kategori: 'dimensi',
+                                kondisi: kondisi,
+                                avgScore: avg.toFixed(2),
+                                timestamp: timestamp,
+                                lat: lat,
+                                lng: lng,
+                                catatan: `Rerata skor evaluasi: ${avg.toFixed(2)} dari ${dimGroups[dim].count} indikator terkait.`,
+                                foto: dimGroups[dim].file
+                            });
+                        }
+                    }
+                }
+
+                // 3. Gabungkan payload menjadi Data Induk
+                payloads.forEach(item => {
+                    const uniqueKey = npsn + "_" + item.id + "_" + item.timestamp;
+                    if (!processedIds.has(uniqueKey)) {
+                        processedIds.add(uniqueKey);
+                        
+                        item.namaSekolah = namaSekolah;
+                        item.npsn = npsn;
+                        item.inspektur = inspektur;
+                        item.provinsi = provinsi;
+                        item.lat = item.lat || lat;
+                        item.lng = item.lng || lng;
+                        
+                        // Konversi Format Lama
+                        if(item.kondisi === "Aman") item.kondisi = "Sangat Inklusif";
+                        if(item.kondisi === "Rusak Ringan") item.kondisi = "Inklusif";
+                        if(item.kondisi === "Rusak Sedang") item.kondisi = "Menuju Inklusif";
+                        if(item.kondisi === "Rusak Berat") item.kondisi = "Kurang Inklusif";
+
+                        allReports.push(item);
+
+                        if (!groupedData[npsn]) groupedData[npsn] = { namaSekolah, npsn, inspektur, provinsi, lat: item.lat, lng: item.lng, objek: {} };
+                        
+                        const objKey = item.objek.trim().toLowerCase();
+                        if (!groupedData[npsn].objek[objKey]) {
+                            groupedData[npsn].objek[objKey] = { originalName: item.objek.trim(), kategori: item.kategori, npsn: npsn, namaSekolah: namaSekolah, history: [] };
+                        }
+                        groupedData[npsn].objek[objKey].history.push(item);
+                    }
+                });
             });
 
-            // Show Modal
-            modal.classList.remove('modal-hidden');
-            modal.classList.add('modal-visible');
-        }
+            // Flatten dan Kalkulasi Avg Sekolah
+            for (let npsn in groupedData) {
+                let s = groupedData[npsn];
+                let sum = 0; let count = 0;
 
-        function closeModal() {
-            modal.classList.remove('modal-visible');
-            modal.classList.add('modal-hidden');
-        }
+                for (let objKey in s.objek) {
+                    s.objek[objKey].history.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                    const latest = s.objek[objKey].history[s.objek[objKey].history.length - 1];
+                    
+                    let val = parseFloat(latest.avgScore);
+                    if(!isNaN(val)) { sum += val; count++; }
+                    else { sum += bobotKondisi[latest.kondisi] || 3; count++; }
 
-        // Close modal when clicking outside the content area
-        modal.addEventListener('click', function(event) {
-            if (event.target === modal) {
-                closeModal();
+                    flatObjects.push({
+                        npsn: npsn,
+                        namaSekolah: s.namaSekolah,
+                        provinsi: s.provinsi,
+                        namaObjek: s.objek[objKey].originalName,
+                        kategori: s.objek[objKey].kategori,
+                        latestTimestamp: latest.timestamp,
+                        calcStatus: latest.kondisi,
+                        avgScore: latest.avgScore || (bobotKondisi[latest.kondisi]||3),
+                        catatan: latest.catatan || "-",
+                        inspektur: latest.inspektur,
+                        historyCount: s.objek[objKey].history.length,
+                        foto: latest.foto
+                    });
+                }
+                
+                s.avgScore = count > 0 ? sum / count : 0;
+                if (s.avgScore >= 3.5) s.overallKondisi = "Sangat Inklusif";
+                else if (s.avgScore >= 2.5) s.overallKondisi = "Inklusif";
+                else if (s.avgScore >= 1.5) s.overallKondisi = "Menuju Inklusif";
+                else s.overallKondisi = "Kurang Inklusif";
             }
-        });
+
+            populateFilter();
+            
+            if(document.getElementById('view-global').classList.contains('active')) {
+                if(!map) initMap(); else map.invalidateSize();
+                filterDataGlobal();
+            } else {
+                renderSarprasTable();
+            }
+
+            setTimeout(() => {
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('loading-screen').classList.remove('flex');
+            }, 500);
+        }
+
+        function populateFilter() {
+            const selectProvGlobal = document.getElementById('filter-provinsi-global');
+            const selectProvSarpras = document.getElementById('filter-provinsi-sarpras');
+            const selectGlobal = document.getElementById('filter-sekolah-global');
+            const selectSarpras = document.getElementById('filter-sekolah-sarpras');
+            const selectAuditor = document.getElementById('filter-auditor');
+            const selectJenis = document.getElementById('filter-jenis');
+            
+            const uniqueProvinsi = new Set();
+            let optionsGlobal = '<option value="ALL">🌐 Semua Sekolah</option>';
+            let optionsSarpras = '<option value="ALL">🏫 Semua Sekolah</option>';
+            
+            Object.values(groupedData).forEach(sekolah => {
+                if(sekolah.provinsi) uniqueProvinsi.add(sekolah.provinsi);
+                optionsGlobal += `<option value="${sekolah.npsn}">${sekolah.namaSekolah}</option>`;
+                optionsSarpras += `<option value="${sekolah.npsn}">${sekolah.namaSekolah}</option>`;
+            });
+            
+            selectGlobal.innerHTML = optionsGlobal;
+            selectSarpras.innerHTML = optionsSarpras;
+
+            let optionsProv = '<option value="ALL">🗺️ Semua Provinsi</option>';
+            Array.from(uniqueProvinsi).sort().forEach(prov => { optionsProv += `<option value="${prov}">${prov}</option>`; });
+            selectProvGlobal.innerHTML = optionsProv;
+            selectProvSarpras.innerHTML = optionsProv;
+
+            const uniqueAuditors = new Set();
+            const uniqueJenis = new Set();
+
+            flatObjects.forEach(obj => {
+                if(obj.inspektur) uniqueAuditors.add(obj.inspektur);
+                if(obj.namaObjek) uniqueJenis.add(obj.namaObjek);
+            });
+
+            let optionsAuditor = '<option value="ALL">👤 Semua Pengisi</option>';
+            Array.from(uniqueAuditors).sort().forEach(auditor => { optionsAuditor += `<option value="${auditor}">${auditor}</option>`; });
+            selectAuditor.innerHTML = optionsAuditor;
+
+            let optionsJenis = '<option value="ALL">📦 Semua Dimensi</option>';
+            Array.from(uniqueJenis).sort().forEach(jenis => { optionsJenis += `<option value="${jenis}">${jenis}</option>`; });
+            selectJenis.innerHTML = optionsJenis;
+        }
+
+        // ==========================================
+        // VIEW 1: GLOBAL
+        // ==========================================
+        function initMap() {
+            map = L.map('global-map', { zoomControl: true }).setView([-0.789, 113.921], 5);
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Tiles &copy; Esri' }).addTo(map);
+            mapLayer = new L.FeatureGroup().addTo(map);
+
+            const legend = L.control({position: 'bottomright'});
+            legend.onAdd = function() {
+                const div = L.DomUtil.create('div', 'map-legend');
+                div.innerHTML = `
+                    <div class="font-bold text-slate-700 mb-2 text-xs">Status Rata-Rata Sekolah</div>
+                    <div class="flex items-center gap-2 mb-1"><span class="w-3 h-3 rounded-full" style="background:#10b981"></span><span class="font-medium text-slate-600">Sangat Inklusif</span></div>
+                    <div class="flex items-center gap-2 mb-1"><span class="w-3 h-3 rounded-full" style="background:#3b82f6"></span><span class="font-medium text-slate-600">Inklusif</span></div>
+                    <div class="flex items-center gap-2 mb-1"><span class="w-3 h-3 rounded-full" style="background:#f59e0b"></span><span class="font-medium text-slate-600">Menuju Inklusif</span></div>
+                    <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#ef4444"></span><span class="font-medium text-slate-600">Kurang Inklusif</span></div>
+                `;
+                return div;
+            };
+            legend.addTo(map);
+        }
+
+        function filterDataGlobal() {
+            const selectedProv = document.getElementById('filter-provinsi-global').value;
+            const selectedNPSN = document.getElementById('filter-sekolah-global').value;
+            
+            let totalSekolah = 0; let totalObjek = 0; let totalKritis = 0; 
+            let totalSangat = 0; let totalInklusif = 0; let totalMenuju = 0; let totalKurang = 0;
+
+            mapLayer.clearLayers();
+            const sekolahStats = {};
+
+            Object.values(groupedData).forEach(sekolah => {
+                if (selectedProv !== 'ALL' && sekolah.provinsi !== selectedProv) return;
+                if (selectedNPSN !== 'ALL' && sekolah.npsn !== selectedNPSN) return;
+                
+                totalSekolah++; 
+                totalObjek += Object.keys(sekolah.objek).length;
+
+                // Create Map Marker per Sekolah
+                let clr = 'blue';
+                if (sekolah.overallKondisi === 'Kurang Inklusif') clr = 'red';
+                else if (sekolah.overallKondisi === 'Menuju Inklusif') clr = 'amber';
+                else if (sekolah.overallKondisi === 'Sangat Inklusif') clr = 'emerald';
+
+                let mapColor = clr === 'red' ? '#ef4444' : (clr === 'amber' ? '#f59e0b' : (clr === 'blue' ? '#3b82f6' : '#10b981'));
+
+                if (sekolah.lat && sekolah.lng) {
+                    const marker = L.circleMarker([sekolah.lat, sekolah.lng], { radius: 9, fillColor: mapColor, color: '#fff', weight: 2.5, fillOpacity: 0.95 });
+                    marker.bindPopup(`
+                        <div style="min-width:200px">
+                            <div style="font-size:10px; color:#64748b; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px">${sekolah.provinsi}</div>
+                            <div style="font-weight:800; color:#1e293b; font-size:14px; margin-bottom:6px">${sekolah.namaSekolah}</div>
+                            <div style="display:inline-block; padding:3px 8px; background:${mapColor}20; color:${mapColor}; border-radius:4px; font-size:11px; font-weight:700">Skor: ${sekolah.avgScore.toFixed(2)} - ${sekolah.overallKondisi}</div>
+                        </div>
+                    `);
+                    mapLayer.addLayer(marker);
+                }
+
+                // Kalkulasi Distibusi berdasar Dimensi (Objek)
+                Object.values(sekolah.objek).forEach(obj => {
+                    const latest = obj.history[obj.history.length - 1];
+                    if (latest.kondisi === 'Sangat Inklusif') totalSangat++;
+                    else if (latest.kondisi === 'Inklusif') totalInklusif++;
+                    else if (latest.kondisi === 'Menuju Inklusif') totalMenuju++;
+                    else totalKurang++;
+                });
+
+                if (sekolah.overallKondisi === 'Kurang Inklusif') totalKritis++;
+                sekolahStats[sekolah.npsn] = { avgScore: sekolah.avgScore, namaSekolah: sekolah.namaSekolah };
+            });
+
+            document.getElementById('stat-sekolah').innerText = totalSekolah;
+            document.getElementById('stat-objek').innerText = totalObjek;
+            document.getElementById('stat-kritis').innerText = totalKritis;
+            document.getElementById('stat-logs').innerText = totalSangat; // Tampilkan status hijau di hero card
+
+            document.getElementById('mini-stat-sekolah').innerText = totalSekolah; 
+            document.getElementById('mini-stat-sangat').innerText = totalSangat;
+            document.getElementById('mini-stat-inklusif').innerText = totalInklusif;
+            document.getElementById('mini-stat-kurang').innerText = totalMenuju + totalKurang;
+
+            renderDistribution(totalSangat, totalInklusif, totalMenuju, totalKurang);
+            renderTopSekolah(sekolahStats);
+            renderRecentActivity();
+
+            if (mapLayer.getLayers().length > 0) {
+                map.fitBounds(L.featureGroup(mapLayer.getLayers()).getBounds(), { padding: [40, 40], maxZoom: 14 });
+            } else {
+                map.setView([-0.789, 113.921], 5);
+            }
+        }
+
+        function renderDistribution(sangat, inklusif, menuju, kurang) {
+            const total = sangat + inklusif + menuju + kurang || 1;
+            const items = [
+                { label: 'Sangat Inklusif', count: sangat, color: 'emerald', icon: 'ph-check-circle' },
+                { label: 'Inklusif', count: inklusif, color: 'blue', icon: 'ph-users' },
+                { label: 'Menuju Inklusif', count: menuju, color: 'amber', icon: 'ph-warning-circle' },
+                { label: 'Kurang Inklusif', count: kurang, color: 'red', icon: 'ph-warning-octagon' },
+            ];
+
+            let html = '';
+            items.forEach(item => {
+                const pct = ((item.count / total) * 100).toFixed(1);
+                html += `
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between text-xs">
+                        <div class="flex items-center gap-1.5">
+                            <i class="ph-fill ${item.icon} text-${item.color}-500"></i>
+                            <span class="font-semibold text-slate-700">${item.label}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-black text-slate-800">${item.count}</span>
+                            <span class="text-slate-400 text-[10px] font-medium w-10 text-right">${pct}%</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill bg-${item.color}-500" style="width:${pct}%"></div>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('distribution-bars').innerHTML = html;
+        }
+
+        function renderTopSekolah(stats) {
+            // Sort ascending: Paling rendah rata-rata duluan
+            const sorted = Object.values(stats).sort((a, b) => a.avgScore - b.avgScore).slice(0, 5);
+            let html = '';
+            
+            if (sorted.length === 0 || sorted.every(s => s.avgScore >= 3.5)) {
+                html = `<div class="text-center py-6 text-slate-400">
+                    <i class="ph-fill ph-confetti text-3xl text-emerald-300 mb-2"></i>
+                    <p class="text-xs font-bold">Seluruh indikator sekolah positif!</p>
+                </div>`;
+            } else {
+                sorted.forEach((s, idx) => {
+                    const rankColor = idx === 0 ? 'red' : (idx === 1 ? 'amber' : 'slate');
+                    const scr = s.avgScore.toFixed(2);
+                    html += `
+                    <div class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-50 transition cursor-pointer" onclick="document.getElementById('filter-sekolah-global').value='${Object.keys(groupedData).find(n => groupedData[n].namaSekolah === s.namaSekolah)}'; filterDataGlobal();">
+                        <div class="w-8 h-8 rounded-lg bg-${rankColor}-100 text-${rankColor}-700 flex items-center justify-center font-black text-sm shrink-0">${idx + 1}</div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-bold text-slate-800 truncate">${s.namaSekolah}</p>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="text-[10px] font-bold text-${rankColor}-600 bg-${rankColor}-50 px-2 py-0.5 rounded border border-${rankColor}-200">Rerata Skor: ${scr}</span>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+            }
+            document.getElementById('top-sekolah-list').innerHTML = html;
+        }
+
+        function renderRecentActivity() {
+            const recent = [...allReports].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5);
+            let html = '';
+            
+            if (recent.length === 0) {
+                html = `<div class="text-center py-8 text-slate-400 text-sm">Belum ada aktivitas</div>`;
+            } else {
+                recent.forEach(r => {
+                    let clr = 'blue'; let icon = 'ph-puzzle-piece';
+                    if (r.kondisi === 'Sangat Inklusif') clr = 'emerald';
+                    else if (r.kondisi === 'Inklusif') clr = 'blue';
+                    else if (r.kondisi === 'Menuju Inklusif') clr = 'amber';
+                    else clr = 'red';
+
+                    const date = new Date(r.timestamp);
+                    const dStr = date.toLocaleDateString('id-ID', {day:'numeric', month:'short'});
+                    const tStr = date.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+                    
+                    html += `
+                    <div class="p-4 hover:bg-slate-50 transition flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-${clr}-50 text-${clr}-600 flex items-center justify-center shrink-0">
+                            <i class="ph-fill ${icon} text-lg"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 mb-0.5">
+                                <p class="font-bold text-slate-800 text-sm truncate">${r.objek}</p>
+                                <span class="status-pill bg-${clr}-50 text-${clr}-700 border border-${clr}-200">${r.kondisi}</span>
+                            </div>
+                            <p class="text-xs text-slate-500 truncate"><i class="ph-bold ph-graduation-cap"></i> ${r.namaSekolah} · <i class="ph-bold ph-user"></i> ${r.inspektur}</p>
+                        </div>
+                        <div class="text-right shrink-0 hidden sm:block">
+                            <p class="text-xs font-bold text-slate-600">${dStr}</p>
+                            <p class="text-[10px] text-slate-400">${tStr}</p>
+                        </div>
+                    </div>`;
+                });
+            }
+            document.getElementById('recent-activity').innerHTML = html;
+        }
+
+        // ==========================================
+        // VIEW 2: SARPRAS (DIMENSI INKLUSIVITAS)
+        // ==========================================
+        function renderSarprasTable() {
+            const filterProv = document.getElementById('filter-provinsi-sarpras').value;
+            const filterText = document.getElementById('filter-text').value.toLowerCase();
+            const filterNPSN = document.getElementById('filter-sekolah-sarpras').value;
+            const filterKond = document.getElementById('filter-kondisi').value;
+            const filterAuditor = document.getElementById('filter-auditor').value;
+            const filterJenis = document.getElementById('filter-jenis').value;
+            
+            const container = document.getElementById('sarpras-table-body');
+            
+            let totalTampil = 0; let totalSangat = 0; let totalKurang = 0;
+
+            const filteredData = flatObjects.filter(obj => {
+                if (filterProv !== 'ALL' && obj.provinsi !== filterProv) return false;
+                if (filterText && !obj.namaObjek.toLowerCase().includes(filterText) && !obj.catatan.toLowerCase().includes(filterText)) return false;
+                if (filterNPSN !== 'ALL' && obj.npsn !== filterNPSN) return false;
+                if (filterAuditor !== 'ALL' && obj.inspektur !== filterAuditor) return false;
+                if (filterJenis !== 'ALL' && obj.namaObjek !== filterJenis) return false;
+                if (filterKond !== 'ALL' && obj.calcStatus !== filterKond) return false;
+                return true;
+            });
+
+            filteredData.sort((a, b) => {
+                const order = { 'Kurang Inklusif': 0, 'Menuju Inklusif': 1, 'Inklusif': 2, 'Sangat Inklusif': 3 };
+                if (order[a.calcStatus] !== order[b.calcStatus]) return order[a.calcStatus] - order[b.calcStatus];
+                return new Date(b.latestTimestamp) - new Date(a.latestTimestamp);
+            });
+
+            if (filteredData.length === 0) {
+                container.innerHTML = `
+                <div class="text-center p-12 bg-white rounded-2xl border border-slate-200">
+                    <div class="w-16 h-16 mx-auto bg-slate-100 rounded-2xl flex items-center justify-center mb-3">
+                        <i class="ph-bold ph-magnifying-glass text-3xl text-slate-300"></i>
+                    </div>
+                    <p class="text-slate-700 font-bold">Tidak ada data ditemukan</p>
+                    <p class="text-slate-400 text-xs mt-1">Coba ubah filter pencarian Anda</p>
+                </div>`;
+                document.getElementById('audit-total-objek').innerText = "0";
+                document.getElementById('audit-total-baik').innerText = "0";
+                document.getElementById('audit-total-rusak').innerText = "0";
+                return;
+            }
+
+            let htmlStr = '';
+            
+            filteredData.forEach(obj => {
+                totalTampil++;
+                if (obj.calcStatus === 'Sangat Inklusif') totalSangat++;
+                else if (obj.calcStatus === 'Kurang Inklusif' || obj.calcStatus === 'Menuju Inklusif') totalKurang++;
+
+                let icon = 'ph-puzzle-piece';
+                if(obj.namaObjek.includes("Kebijakan")) icon = 'ph-file-text';
+                else if(obj.namaObjek.includes("Sumber")) icon = 'ph-users-three';
+                else if(obj.namaObjek.includes("Pembelajaran")) icon = 'ph-book-open';
+                else if(obj.namaObjek.includes("Dukungan")) icon = 'ph-hand-heart';
+                else if(obj.namaObjek.includes("Partisipasi")) icon = 'ph-users';
+                else if(obj.namaObjek.includes("Outcome")) icon = 'ph-chart-line-up';
+                
+                let clr = 'blue'; let statusIcon = 'ph-check-circle';
+                if (obj.calcStatus === 'Kurang Inklusif') { clr = 'red'; statusIcon = 'ph-warning-octagon'; }
+                else if (obj.calcStatus === 'Menuju Inklusif') { clr = 'amber'; statusIcon = 'ph-warning-circle'; }
+                else if (obj.calcStatus === 'Inklusif') { clr = 'blue'; statusIcon = 'ph-check-circle'; }
+                else { clr = 'emerald'; statusIcon = 'ph-check-circle'; }
+
+                let tagLabel = `${obj.avgScore} - ${obj.calcStatus}`;
+                const dDate = new Date(obj.latestTimestamp).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
+                const objId = obj.npsn + '|' + obj.namaObjek;
+                const isActive = activeObjId === objId;
+
+                htmlStr += `
+                <div onclick="openTimeline('${obj.npsn}', '${obj.namaObjek.replace(/'/g, "\\'")}', this)" data-obj-id="${objId}" class="obj-card bg-white border-2 ${isActive ? 'border-blue-500 active' : 'border-slate-200'} rounded-xl p-4 hover:border-blue-300 hover:shadow-md cursor-pointer flex items-center gap-3 group">
+                    <div class="w-12 h-12 rounded-xl bg-${clr}-50 text-${clr}-600 flex items-center justify-center shrink-0 border border-${clr}-100">
+                        <i class="ph-fill ${icon} text-2xl"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <h3 class="font-bold text-slate-800 truncate" title="${obj.namaObjek}">${obj.namaObjek}</h3>
+                            ${obj.historyCount > 1 ? `<span class="text-[9px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">${obj.historyCount}x</span>` : ''}
+                        </div>
+                        <p class="text-xs text-slate-500 truncate">
+                            <i class="ph-bold ph-graduation-cap text-slate-400"></i> ${obj.namaSekolah}
+                        </p>
+                        <div class="flex items-center gap-3 mt-2">
+                            <span class="status-pill bg-${clr}-50 text-${clr}-700 border border-${clr}-200">
+                                <i class="ph-fill ${statusIcon}"></i>${tagLabel}
+                            </span>
+                            <span class="text-[10px] text-slate-400 font-medium flex items-center gap-1">
+                                <i class="ph-bold ph-calendar-blank"></i> ${dDate}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="hidden md:flex w-9 h-9 bg-slate-50 group-hover:bg-blue-600 rounded-lg items-center justify-center shrink-0 transition-colors">
+                        <i class="ph-bold ph-arrow-right text-slate-400 group-hover:text-white transition-colors"></i>
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = htmlStr;
+
+            document.getElementById('audit-total-objek').innerText = totalTampil;
+            document.getElementById('audit-total-baik').innerText = totalSangat;
+            document.getElementById('audit-total-rusak').innerText = totalKurang;
+        }
+
+        function openTimeline(npsn, objName, cardEl) {
+            const objId = npsn + '|' + objName;
+            activeObjId = objId;
+            document.querySelectorAll('.obj-card').forEach(c => c.classList.remove('active', 'border-blue-500'));
+            if (cardEl) {
+                cardEl.classList.add('active');
+                cardEl.classList.remove('border-slate-200');
+                cardEl.classList.add('border-blue-500');
+            }
+
+            const sekolah = groupedData[npsn];
+            const obj = sekolah.objek[objName.toLowerCase()];
+            if(!obj) return;
+
+            const kategoriHTML = `<i class="ph-bold ph-puzzle-piece"></i> Analisis Dimensi`;
+            document.getElementById('tl-kategori').innerHTML = kategoriHTML;
+            document.getElementById('tl-objek-nama').innerText = obj.originalName;
+            document.getElementById('tl-sekolah-nama').innerHTML = `<i class="ph-bold ph-graduation-cap"></i> <span>${sekolah.namaSekolah}</span>`;
+            document.getElementById('tl-objek-nama-mobile').innerText = obj.originalName;
+            document.getElementById('tl-sekolah-nama-mobile').innerText = sekolah.namaSekolah;
+
+            const trendBox = document.getElementById('tl-trend-box');
+            const trendBoxMobile = document.getElementById('tl-trend-box-mobile');
+            let trendHTML = '';
+
+            const historyDesc = [...obj.history]; 
+            const latest = historyDesc[historyDesc.length - 1];
+
+            if (historyDesc.length === 1) {
+                trendHTML = `
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Status Tren</p>
+                <div class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-700 rounded-xl font-bold border border-blue-200">
+                    <i class="ph-fill ph-info text-xl"></i> Perekaman Awal
+                </div>
+                <p class="text-xs text-slate-500 mt-2">Belum ada komparasi riwayat</p>`;
+            } else {
+                const prev = historyDesc[historyDesc.length - 2];
+                let statusMsg = ""; let statusIcon = ""; let statusColor = "";
+                let diff = parseFloat(latest.avgScore) - parseFloat(prev.avgScore);
+                
+                if (diff > 0) { statusMsg = "Peningkatan Skor"; statusIcon = "ph-trend-up"; statusColor = "emerald"; }
+                else if (diff < 0) { statusMsg = "Penurunan Skor"; statusIcon = "ph-trend-down"; statusColor = "red"; }
+                else { statusMsg = "Stagnan (Tidak Ada Perubahan)"; statusIcon = "ph-minus"; statusColor = "slate"; }
+
+                trendHTML = `
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Deteksi Perubahan</p>
+                <div class="inline-flex items-center gap-2 px-4 py-2.5 bg-${statusColor}-50 text-${statusColor}-700 rounded-xl font-black border border-${statusColor}-200 shadow-sm">
+                    <i class="ph-bold ${statusIcon} text-xl"></i> ${statusMsg.toUpperCase()}
+                </div>
+                <p class="text-xs text-slate-500 mt-2">Perbandingan laporan terakhir vs sebelumnya</p>`;
+            }
+            trendBox.innerHTML = trendHTML; trendBoxMobile.innerHTML = trendHTML;
+
+            const historyAsc = [...obj.history].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+            let tlHTML = '<div class="p-5">';
+
+            historyAsc.forEach((r, idx) => {
+                const isLatest = idx === 0;
+                let clr = 'blue';
+                if (r.kondisi === 'Sangat Inklusif') clr = 'emerald';
+                else if (r.kondisi === 'Inklusif') clr = 'blue';
+                else if (r.kondisi === 'Menuju Inklusif') clr = 'amber';
+                else clr = 'red';
+
+                let tagStr = `${r.avgScore} - ${r.kondisi}`;
+                const dDate = new Date(r.timestamp).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+                const dTime = new Date(r.timestamp).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+
+                let fotoBtnHtml = '';
+                const fotoUrl = r.foto || r.Foto || r.gambar || r.image || r.Image || '';
+                if (fotoUrl && String(fotoUrl).trim() !== '') {
+                    const safeUrl = String(fotoUrl).trim().replace(/"/g, '&quot;');
+                    fotoBtnHtml = `
+                    <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white flex items-center justify-center shrink-0 border border-blue-200 transition-colors shadow-sm" title="Buka Tautan Bukti">
+                        <i class="ph-bold ph-link text-sm"></i>
+                    </a>`;
+                }
+
+                tlHTML += `
+                <div class="timeline-item relative pl-12 pb-6 fade-in">
+                    <div class="timeline-line"></div>
+                    <div class="absolute left-0 top-0 w-10 h-10 rounded-full border-4 border-white ${isLatest ? 'gradient-blue shadow-lg shadow-blue-500/40 scale-110 z-10' : 'bg-slate-300 z-0'} flex items-center justify-center text-white">
+                        <i class="ph-bold ph-puzzle-piece text-base"></i>
+                    </div>
+                    <div class="bg-white border ${isLatest ? 'border-blue-200 shadow-md ring-1 ring-blue-100' : 'border-slate-200'} p-4 rounded-2xl">
+                        ${isLatest ? '<div class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-[9px] font-black uppercase rounded mb-2">Terbaru</div>' : ''}
+                        
+                        <div class="flex justify-between items-start mb-2 pb-2 border-b border-slate-100">
+                            <div>
+                                <p class="text-sm font-black text-slate-800">${dDate}</p>
+                                <p class="text-[10px] text-slate-400 font-medium mt-0.5">
+                                    <i class="ph-bold ph-clock"></i> ${dTime} · 
+                                    <i class="ph-bold ph-user"></i> ${r.inspektur}
+                                </p>
+                            </div>
+                            
+                            <div class="flex items-center gap-2">
+                                ${fotoBtnHtml}
+                                <span class="status-pill bg-${clr}-50 text-${clr}-700 border border-${clr}-200 shrink-0">${tagStr}</span>
+                            </div>
+                        </div>
+
+                        <p class="text-sm text-slate-700 leading-relaxed italic">"${r.catatan}"</p>
+                    </div>
+                </div>`;
+            });
+
+            tlHTML += '</div>';
+            document.getElementById('tl-history-list').innerHTML = tlHTML; 
+            document.getElementById('tl-history-list-mobile').innerHTML = tlHTML;
+            if(window.innerWidth < 1024) { 
+                document.getElementById('modal-timeline-mobile').classList.remove('hidden'); 
+                document.getElementById('modal-timeline-mobile').classList.add('flex'); 
+            }
+        }
+
+        function closeTimelineMobile() { 
+            document.getElementById('modal-timeline-mobile').classList.add('hidden'); 
+            document.getElementById('modal-timeline-mobile').classList.remove('flex'); 
+        }
     </script>
 </body>
 </html>
