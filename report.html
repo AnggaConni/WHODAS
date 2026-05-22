@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Audit Sekolah Inklusif</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        /* Konfigurasi CSS Dasar */
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #f8fafc;
+        }
+
+        /* Transisi Tab View */
+        .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Styling Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Custom Radio Button styling untuk Audit Form */
+        .audit-radio:checked + div {
+            background-color: #e0e7ff;
+            border-color: #4f46e5;
+            color: #3730a3;
+            box-shadow: inset 0 0 0 2px #4f46e5;
+        }
+
+        .hidden-smooth { opacity: 0; visibility: hidden; transition: all 0.3s; height: 0; overflow: hidden; }
+        .show-smooth { opacity: 1; visibility: visible; height: auto; margin-top: 1rem; }
+
+        /* ==========================================
+           PENGATURAN CETAK (PRINT / PDF)
+           ========================================== */
+        @media print {
+            body { background-color: white !important; }
+            /* Sembunyikan elemen yang tidak perlu di PDF */
+            nav, header, .no-print { display: none !important; }
+            
+            /* Lebarkan kontainer utama */
+            main { margin: 0 !important; padding: 0 !important; width: 100% !important; overflow: visible !important; }
+            .view-section { display: none !important; }
+            #view-dashboard { display: block !important; } /* Hanya print Dashboard */
+            
+            /* Paksa warna background dan gradient ikut ter-print */
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            
+            /* Hapus shadow agar lebih bersih */
+            .shadow-xl, .shadow-sm { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+            
+            /* Tambahkan judul khusus cetak */
+            #print-header { display: block !important; margin-bottom: 20px; text-align: center; border-bottom: 2px solid #4f46e5; padding-bottom: 10px; }
+            #dash-progress-container-print { display: none !important; } /* Sembunyikan progress bar di print */
+        }
+    </style>
+</head>
+<body class="text-slate-800 h-screen overflow-hidden flex flex-col md:flex-row">
+
+    <!-- SIDEBAR / BOTTOM NAV -->
+    <nav class="fixed md:relative bottom-0 w-full md:w-72 bg-white border-t md:border-t-0 md:border-r border-slate-200 z-50 flex md:flex-col justify-around md:justify-start pb-safe md:pb-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] md:shadow-none order-2 md:order-1 transition-all">
+        
+        <div class="hidden md:flex items-center gap-3 px-6 py-8 border-b border-slate-100 w-full bg-indigo-50/50">
+            <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-md">
+                <i class="ph-bold ph-graduation-cap text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-black text-indigo-900 leading-tight">Inklusi<br>Audit System</h1>
+            </div>
+        </div>
+
+        <div class="flex md:flex-col w-full px-2 md:px-4 py-2 md:py-6 gap-1 md:gap-2">
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn flex-1 md:flex-none flex flex-col md:flex-row items-center md:justify-start p-2 md:px-4 md:py-3.5 rounded-xl text-indigo-600 bg-indigo-50 transition-colors font-semibold">
+                <i class="ph-fill ph-squares-four text-2xl md:text-xl md:mr-3"></i>
+                <span class="text-[10px] md:text-sm mt-1 md:mt-0">Dashboard</span>
+            </button>
+            <button onclick="switchTab('triase')" id="nav-triase" class="nav-btn flex-1 md:flex-none flex flex-col md:flex-row items-center md:justify-start p-2 md:px-4 md:py-3.5 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50/50 transition-colors font-medium">
+                <i class="ph-fill ph-clipboard-text text-2xl md:text-xl md:mr-3"></i>
+                <span class="text-[10px] md:text-sm mt-1 md:mt-0">Triase Audit</span>
+            </button>
+            <button onclick="switchTab('dokumen')" id="nav-dokumen" class="nav-btn flex-1 md:flex-none flex flex-col md:flex-row items-center md:justify-start p-2 md:px-4 md:py-3.5 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50/50 transition-colors font-medium">
+                <i class="ph-fill ph-folders text-2xl md:text-xl md:mr-3"></i>
+                <span class="text-[10px] md:text-sm mt-1 md:mt-0">Dok. Wajib</span>
+            </button>
+            <button onclick="switchTab('referensi')" id="nav-referensi" class="nav-btn flex-1 md:flex-none flex flex-col md:flex-row items-center md:justify-start p-2 md:px-4 md:py-3.5 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50/50 transition-colors font-medium">
+                <i class="ph-fill ph-books text-2xl md:text-xl md:mr-3"></i>
+                <span class="text-[10px] md:text-sm mt-1 md:mt-0">Referensi</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- AREA KONTEN UTAMA -->
+    <main class="flex-1 flex flex-col order-1 md:order-2 h-full overflow-y-auto bg-slate-50 relative">
+        
+        <!-- Header Mobile -->
+        <header class="md:hidden bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-40 flex justify-between items-center no-print">
+            <div class="flex items-center gap-2">
+                <i class="ph-bold ph-graduation-cap text-2xl text-indigo-200"></i>
+                <h1 class="text-lg font-bold">Audit Inklusi</h1>
+            </div>
+            <button onclick="openProfileModal()" class="text-indigo-200 hover:text-white"><i class="ph-fill ph-user-circle text-3xl"></i></button>
+        </header>
+
+        <div class="p-4 md:p-8 pb-28 w-full max-w-5xl md:mx-auto">
+            
+            <!-- HEADER KHUSUS PDF/PRINT (Default disembunyikan) -->
+            <div id="print-header" style="display: none;">
+                <h1 style="font-size: 24px; font-weight: 900; color: #312e81; margin-bottom: 5px;">LAPORAN AUDIT SEKOLAH INKLUSIF</h1>
+                <p style="font-size: 14px; color: #64748b; margin-bottom: 15px;">Dicetak pada: <span id="print-date"></span></p>
+                <div style="background-color: #f8fafc; padding: 15px; border-radius: 10px; text-align: left; border: 1px solid #e2e8f0; display: inline-block; width: 100%;">
+                    <p style="margin: 0; font-size: 14px;"><strong>Sekolah:</strong> <span id="print-nama-sekolah">-</span> (NPSN: <span id="print-npsn">-</span>)</p>
+                    <p style="margin: 5px 0 0 0; font-size: 14px;"><strong>Auditor:</strong> <span id="print-auditor">-</span></p>
+                </div>
+            </div>
+
+            <!-- ============================== -->
+            <!-- 1. DASHBOARD VIEW              -->
+            <!-- ============================== -->
+            <section id="view-dashboard" class="view-section active space-y-6">
+                
+                <div class="flex flex-col md:flex-row md:justify-between md:items-end mb-2 gap-4">
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-800">Ringkasan Audit</h2>
+                        <p class="text-sm text-slate-500 mt-1">Indeks Sekolah Inklusif Berbasis Dokumen</p>
+                    </div>
+                    
+                    <!-- KOTAK PROFIL (Klik untuk edit) -->
+                    <div onclick="openProfileModal()" class="no-print bg-white px-4 py-2 rounded-xl border border-indigo-200 shadow-sm cursor-pointer hover:bg-indigo-50 transition flex items-center gap-3">
+                        <i class="ph-fill ph-user-circle text-indigo-500 text-3xl"></i>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Profil Sekolah</p>
+                            <p id="dash-school-name" class="text-sm font-bold text-indigo-900 mt-0.5 leading-none">Belum Diatur</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kartu Skor Utama -->
+                <div class="bg-gradient-to-br from-indigo-600 to-violet-800 rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
+                    <i class="ph-fill ph-chart-polar text-[200px] absolute -right-10 -bottom-10 opacity-10 transform -rotate-12"></i>
+                    
+                    <div class="relative z-10 flex flex-col md:flex-row gap-6 items-center justify-between">
+                        <div class="text-center md:text-left">
+                            <p class="text-indigo-200 font-bold tracking-widest uppercase text-xs mb-2">Total Skor Indeks</p>
+                            <div class="flex items-baseline justify-center md:justify-start gap-2">
+                                <h1 id="dash-score" class="text-6xl md:text-7xl font-black drop-shadow-lg">0</h1>
+                                <span class="text-2xl text-indigo-200 font-medium">/100</span>
+                            </div>
+                            <div class="mt-4 inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30 shadow-inner">
+                                <i id="dash-status-icon" class="ph-fill ph-warning-circle text-yellow-300 text-xl"></i>
+                                <span id="dash-status-text" class="font-bold text-sm">Belum Diisi</span>
+                            </div>
+                        </div>
+
+                        <div id="dash-progress-container-print" class="w-full md:w-1/2 bg-black/20 p-5 rounded-2xl backdrop-blur-sm border border-white/10 no-print">
+                            <h3 class="text-xs font-bold text-indigo-200 uppercase tracking-wider mb-3">Progress Pengisian Bukti</h3>
+                            <div class="flex justify-between text-sm font-medium mb-1">
+                                <span>Indikator Terisi</span>
+                                <span id="dash-progress-text" class="font-bold">0 / 31</span>
+                            </div>
+                            <div class="w-full bg-white/10 rounded-full h-3 mb-2 overflow-hidden shadow-inner">
+                                <div id="dash-progress-bar" class="bg-green-400 h-3 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                            </div>
+                            <button onclick="switchTab('triase')" class="w-full mt-4 bg-white text-indigo-900 font-bold py-2.5 rounded-xl hover:bg-indigo-50 transition shadow-md">Lanjutkan Audit Triase</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD SISTEM PENYIMPANAN & EXPORT -->
+                <div class="no-print bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col lg:flex-row justify-between lg:items-center gap-4">
+                    <div>
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="ph-fill ph-export text-indigo-500 text-lg"></i> Ekspor & Pengiriman Data</h3>
+                        <p class="text-xs text-slate-500 mt-1">Simpan, cetak, atau kirim hasil audit secara online.</p>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-2">
+                        <!-- Tiga Tombol Utama Baru -->
+                        <button onclick="window.print()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2 px-3 rounded-xl flex items-center gap-1.5 border border-indigo-200 text-xs transition-colors shadow-sm"><i class="ph-bold ph-printer"></i> Cetak PDF</button>
+                        <button onclick="exportDataJSON()" class="bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold py-2 px-3 rounded-xl flex items-center gap-1.5 border border-slate-200 text-xs transition-colors shadow-sm"><i class="ph-bold ph-download-simple"></i> Backup (.json)</button>
+                        <button onclick="triggerLoadJSON()" class="bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold py-2 px-3 rounded-xl flex items-center gap-1.5 border border-slate-200 text-xs transition-colors shadow-sm"><i class="ph-bold ph-upload-simple"></i> Load</button>
+                        
+                        <button onclick="submitToGoogleForm()" id="btn-sync-gform" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-xl flex items-center gap-1.5 text-xs transition-colors shadow-md ml-auto lg:ml-2">
+                            <i class="ph-bold ph-paper-plane-tilt"></i> Kirim ke Server GForm
+                        </button>
+                        
+                        <input type="file" id="load-json-input" accept=".json" class="hidden" onchange="handleLoadJSON(event)">
+                    </div>
+                </div>
+
+                <!-- Rincian Per Dimensi -->
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="ph-bold ph-chart-line-up text-indigo-600"></i> Capaian Per Dimensi</h3>
+                        <button onclick="resetData()" class="no-print text-xs font-bold text-red-500 hover:underline">Reset Semua Data</button>
+                    </div>
+                    <div id="dimension-progress-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Digenerate via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============================== -->
+            <!-- SECTION LAINNYA                -->
+            <!-- ============================== -->
+            <section id="view-triase" class="view-section space-y-6">
+                <!-- Sama Seperti Sebelumnya -->
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-6 flex items-start gap-4">
+                    <div class="bg-amber-100 p-3 rounded-xl text-amber-600 shrink-0">
+                        <i class="ph-fill ph-info text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800">Panduan Skoring Dokumen</h3>
+                        <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                            <strong class="text-red-600">1 (Rendah):</strong> Dokumen tidak tersedia/informal. <br>
+                            <strong class="text-orange-600">2 (Dasar):</strong> Dokumen ada namun parsial/belum sistematis. <br>
+                            <strong class="text-blue-600">3 (Menengah):</strong> Dokumen lengkap & diterapkan sebagian. <br>
+                            <strong class="text-green-600">4 (Tinggi):</strong> Dokumen lengkap, legal, evaluatif & berkelanjutan.
+                        </p>
+                    </div>
+                </div>
+                <div id="audit-form-container" class="space-y-4 pb-10"></div>
+            </section>
+
+            <section id="view-dokumen" class="view-section space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-xl font-bold text-slate-800 mb-2 border-b pb-4">Checklist Dokumen Wajib</h2>
+                    <ul class="space-y-3 mt-4" id="checklist-dokumen"></ul>
+                </div>
+            </section>
+
+            <section id="view-referensi" class="view-section space-y-4">
+                <div class="bg-indigo-900 p-6 rounded-2xl shadow-lg text-white mb-6 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+                    <h2 class="text-2xl font-black flex items-center gap-2"><i class="ph-bold ph-books"></i> Landasan Teori</h2>
+                </div>
+                <div id="referensi-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-10"></div>
+            </section>
+        </div>
+    </main>
+
+    <!-- ==========================================
+         MODAL PROFIL SEKOLAH / AUDITOR
+         ========================================== -->
+    <div id="profile-modal" class="fixed inset-0 bg-slate-900/60 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity no-print">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col transform transition-transform scale-95" id="profile-modal-content">
+            <div class="p-5 border-b border-indigo-100 flex justify-between items-center bg-indigo-600 text-white">
+                <h3 class="font-bold flex items-center gap-2"><i class="ph-bold ph-buildings text-xl"></i> Profil Sekolah & Auditor</h3>
+                <button onclick="closeProfileModal()" class="text-indigo-200 hover:text-white"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Nama Sekolah</label>
+                    <input type="text" id="input-sekolah" placeholder="Misal: SDN 1 Nusantara" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-colors">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">NPSN</label>
+                    <input type="number" id="input-npsn" placeholder="12345678" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-colors">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Nama Auditor / Penilai</label>
+                    <input type="text" id="input-auditor" placeholder="Misal: Budi Santoso" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-colors">
+                </div>
+                
+                <button onclick="saveProfile()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 mt-2 rounded-xl transition shadow-md">
+                    Simpan Profil
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Upload Simulasi -->
+    <div id="upload-modal" class="fixed inset-0 bg-slate-900/60 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity no-print">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col transform transition-transform scale-95" id="upload-modal-content">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-indigo-50">
+                <h3 class="font-bold text-indigo-900 flex items-center gap-2"><i class="ph-bold ph-upload-simple"></i> Unggah Bukti</h3>
+                <button onclick="closeUploadModal()" class="text-slate-400 hover:text-slate-700"><i class="ph-bold ph-x text-lg"></i></button>
+            </div>
+            <div class="p-6">
+                <p class="text-xs text-slate-500 font-semibold mb-1 uppercase">Indikator:</p>
+                <p id="upload-indicator-name" class="text-sm font-bold text-slate-800 mb-4 leading-tight">-</p>
+                
+                <div class="border-2 border-dashed border-indigo-200 bg-indigo-50/50 rounded-xl p-8 text-center cursor-pointer hover:bg-indigo-50 transition" onclick="simulateUpload()">
+                    <i class="ph-fill ph-file-arrow-up text-4xl text-indigo-400 mb-2"></i>
+                    <p class="text-sm font-bold text-indigo-700">Klik untuk Pilih File</p>
+                    <p class="text-xs text-slate-500 mt-1">PDF, JPG, atau DOCX</p>
+                </div>
+                <input type="hidden" id="current-upload-id">
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Data Framework (Tidak berubah)
+        const framework = [
+            { id: 'dim1', title: 'Kebijakan dan Tata Kelola Inklusif', weight: 20, desc: 'Mengevaluasi landasan hukum, visi-misi, dan struktur organisasi.', indicators: [{ id: 'd1_1', text: 'Visi-misi sekolah memuat inklusi', bukti: 'SK, Renstra, Profil Sekolah' }, { id: 'd1_2', text: 'Tersedia kebijakan anti diskriminasi', bukti: 'SOP, Tata Tertib, SK' }, { id: 'd1_3', text: 'Regulasi penerimaan peserta didik inklusif', bukti: 'Juknis PPDB' }, { id: 'd1_4', text: 'Terdapat Unit Layanan Disabilitas/Tim inklusi', bukti: 'SK Tim' }, { id: 'd1_5', text: 'Ada roadmap/peta jalan inklusi', bukti: 'Dokumen RKJM/RKT' }] },
+            { id: 'dim2', title: 'Budaya dan Iklim Sekolah Inklusif', weight: 15, desc: 'Menciptakan lingkungan yang aman dan bebas perundungan.', indicators: [{ id: 'd2_1', text: 'Program anti bullying', bukti: 'Modul/program sekolah' }, { id: 'd2_2', text: 'Program penguatan karakter inklusif', bukti: 'Kurikulum/P5/modul' }, { id: 'd2_3', text: 'Dokumentasi kegiatan keberagaman', bukti: 'Foto kegiatan/Laporan' }, { id: 'd2_4', text: 'Pelibatan seluruh anak dalam kegiatan sekolah', bukti: 'Jadwal Kegiatan' }, { id: 'd2_5', text: 'Pelatihan guru tentang inklusi', bukti: 'Sertifikat, Laporan Bimtek' }] },
+            { id: 'dim3', title: 'Pembelajaran Inklusif dan UDL', weight: 25, desc: 'Penerapan Universal Design for Learning (UDL) dan diferensiasi.', indicators: [{ id: 'd3_1', text: 'Modul ajar diferensiatif', bukti: 'Modul Pembelajaran' }, { id: 'd3_2', text: 'Adanya adaptasi kurikulum', bukti: 'PPI/Kurikulum Modifikasi' }, { id: 'd3_3', text: 'Penggunaan multi representasi (UDL)', bukti: 'RPP/Modul/Media' }, { id: 'd3_4', text: 'Variasi asesmen', bukti: 'Instrumen Asesmen' }, { id: 'd3_5', text: 'Penggunaan teknologi asistif', bukti: 'Inventaris/Media' }, { id: 'd3_6', text: 'Pembelajaran sosial emosional (SEL)', bukti: 'Modul SEL/BK' }, { id: 'd3_7', text: 'Individualized Education Program (PPI)', bukti: 'Dokumen PPI' }] },
+            { id: 'dim4', title: 'Layanan Dukungan dan Akomodasi', weight: 15, desc: 'Aksesibilitas fisik, digital, dan layanan pendukung khusus.', indicators: [{ id: 'd4_1', text: 'Identifikasi dan asesmen awal anak', bukti: 'Hasil Asesmen' }, { id: 'd4_2', text: 'Program intervensi spesifik', bukti: 'Jadwal Layanan' }, { id: 'd4_3', text: 'Aksesibilitas fisik (Ramp, Toilet Difabel)', bukti: 'Foto/Surat Sarpras' }, { id: 'd4_4', text: 'Aksesibilitas digital', bukti: 'LMS/Website Aksesibel' }, { id: 'd4_5', text: 'Kolaborasi dengan profesional (Psikolog/Terapis)', bukti: 'MoU/Undangan Ahli' }] },
+            { id: 'dim5', title: 'Partisipasi Peserta Didik & Orang Tua', weight: 10, desc: 'Keterlibatan aktif stakeholder dalam pengambilan keputusan.', indicators: [{ id: 'd5_1', text: 'Pelibatan orang tua dalam program inklusi', bukti: 'Notulen/Pertemuan' }, { id: 'd5_2', text: 'Survei kepuasan peserta didik', bukti: 'Instrumen Survei' }, { id: 'd5_3', text: 'Voice of student', bukti: 'Forum Siswa' }, { id: 'd5_4', text: 'Kolaborasi komunitas disabilitas', bukti: 'MoU/Kegiatan' }] },
+            { id: 'dim6', title: 'Outcome dan Monitoring', weight: 15, desc: 'Evaluasi dampak, transisi lulusan, dan perbaikan berkelanjutan.', indicators: [{ id: 'd6_1', text: 'Monitoring perkembangan anak', bukti: 'Rapor/Portofolio' }, { id: 'd6_2', text: 'Data kehadiran dan partisipasi', bukti: 'Rekap Absensi' }, { id: 'd6_3', text: 'Data transisi/lulusan', bukti: 'Tracer Study' }, { id: 'd6_4', text: 'Evaluasi program inklusi tahunan', bukti: 'Laporan Evaluasi' }, { id: 'd6_5', text: 'Tindak lanjut perbaikan program', bukti: 'RTL/Program Kerja' }] }
+        ];
+        const dokumenWajib = ["Visi-misi sekolah", "RKJM dan RKT", "SK Tim Inklusi/ULD", "Kurikulum operasional sekolah", "Modul ajar diferensiatif", "PPI/IEP peserta didik", "SOP anti diskriminasi", "Program BK dan SEL", "Dokumen asesmen peserta didik", "Dokumentasi kegiatan inklusi", "Rekap pelatihan guru", "Data outcome peserta didik", "Laporan evaluasi tahunan", "Bukti aksesibilitas sarana", "MoU kemitraan profesional"];
+        const referensiList = ["Booth, T., & Ainscow, M. (2016). Index for inclusion.", "CAST. (2024). Universal Design for Learning guidelines.", "UNICEF. (2021). Inclusive education guidance."];
+
+        // State & Initialization
+        let auditData = JSON.parse(localStorage.getItem('auditInklusiData')) || {};
+        let uploadedFiles = JSON.parse(localStorage.getItem('auditUploadedFiles')) || {};
+        let schoolProfile = JSON.parse(localStorage.getItem('auditSchoolProfile')) || { nama: '', npsn: '', auditor: '' };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAuditForm();
+            renderDokumenWajib();
+            renderReferensi();
+            updateProfileUI();
+            calculateAndUpdateDashboard();
+            switchTab('dashboard');
+            
+            // Set Print Date
+            document.getElementById('print-date').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        });
+
+        // Tabs Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + tabId).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-indigo-600', 'bg-indigo-50', 'font-semibold');
+                btn.classList.add('text-slate-400', 'hover:text-indigo-600', 'hover:bg-indigo-50/50', 'font-medium');
+            });
+            const activeBtn = document.getElementById('nav-' + tabId);
+            activeBtn.classList.remove('text-slate-400', 'font-medium');
+            activeBtn.classList.add('text-indigo-600', 'bg-indigo-50', 'font-semibold');
+            if (tabId === 'dashboard') calculateAndUpdateDashboard();
+        }
+
+        // ==========================================
+        // FITUR PROFIL SEKOLAH
+        // ==========================================
+        function openProfileModal() {
+            document.getElementById('input-sekolah').value = schoolProfile.nama;
+            document.getElementById('input-npsn').value = schoolProfile.npsn;
+            document.getElementById('input-auditor').value = schoolProfile.auditor;
+            
+            const modal = document.getElementById('profile-modal');
+            const content = document.getElementById('profile-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.add('opacity-100'); content.classList.remove('scale-95'); content.classList.add('scale-100'); }, 10);
+        }
+
+        function closeProfileModal() {
+            const modal = document.getElementById('profile-modal');
+            const content = document.getElementById('profile-modal-content');
+            modal.classList.remove('opacity-100'); content.classList.remove('scale-100'); content.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        function saveProfile() {
+            schoolProfile.nama = document.getElementById('input-sekolah').value.trim();
+            schoolProfile.npsn = document.getElementById('input-npsn').value.trim();
+            schoolProfile.auditor = document.getElementById('input-auditor').value.trim();
+            
+            localStorage.setItem('auditSchoolProfile', JSON.stringify(schoolProfile));
+            updateProfileUI();
+            closeProfileModal();
+        }
+
+        function updateProfileUI() {
+            const namaUI = schoolProfile.nama ? schoolProfile.nama : "Belum Diatur";
+            
+            // Update Dashboard Card
+            document.getElementById('dash-school-name').innerText = namaUI;
+            
+            // Update Text Print
+            document.getElementById('print-nama-sekolah').innerText = namaUI;
+            document.getElementById('print-npsn').innerText = schoolProfile.npsn || '-';
+            document.getElementById('print-auditor').innerText = schoolProfile.auditor || '-';
+        }
+
+        // ==========================================
+        // FITUR RENDER & KALKULASI
+        // ==========================================
+        function renderAuditForm() {
+            const container = document.getElementById('audit-form-container');
+            let html = '';
+
+            framework.forEach((dim, dimIndex) => {
+                html += `
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-4 print:border-slate-800">
+                    <div class="p-5 bg-slate-50 border-b border-slate-200 flex justify-between items-center cursor-pointer" onclick="toggleAccordion('dim-${dimIndex}')">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-600 bg-indigo-100 px-2 py-1 rounded">Dimensi ${dimIndex + 1} • Bobot ${dim.weight}%</span>
+                            <h3 class="text-lg font-bold text-slate-800 mt-2">${dim.title}</h3>
+                        </div>
+                        <div class="bg-white p-2 rounded-full shadow-sm no-print"><i id="icon-dim-${dimIndex}" class="ph-bold ph-caret-down text-slate-400 transition-transform"></i></div>
+                    </div>
+                    <div id="dim-${dimIndex}" class="hidden-smooth px-5 pb-2">
+                        <div class="space-y-6 pt-4">
+                `;
+                dim.indicators.forEach((ind, indIndex) => {
+                    const val = auditData[ind.id] || null;
+                    const isUploaded = uploadedFiles[ind.id];
+                    const uploadBtnClass = isUploaded ? 'bg-green-50 text-green-700 border-green-300' : 'bg-white text-slate-600 border-slate-300';
+                    const uploadBtnIcon = isUploaded ? 'ph-check-circle text-green-500' : 'ph-upload-simple';
+                    
+                    html += `
+                        <div class="border border-slate-100 bg-slate-50/50 p-4 rounded-xl">
+                            <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-4">
+                                <div class="flex-1">
+                                    <h4 class="font-bold text-slate-800 text-sm">${indIndex + 1}. ${ind.text}</h4>
+                                </div>
+                                <button id="btn-upload-${ind.id}" onclick="openUploadModal('${ind.id}', '${ind.text.replace(/'/g, "\\'")}')" class="no-print shrink-0 flex items-center gap-2 text-xs font-bold border ${uploadBtnClass} px-3 py-2 rounded-lg transition-colors">
+                                    <i class="ph-bold ${uploadBtnIcon} text-lg"></i> <span id="text-upload-${ind.id}">${isUploaded ? 'Dokumen Tersimpan' : 'Upload Bukti'}</span>
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                ${[1, 2, 3, 4].map(score => `
+                                    <label class="relative cursor-pointer">
+                                        <input type="radio" name="${ind.id}" value="${score}" class="peer sr-only audit-radio" ${val == score ? 'checked' : ''} onchange="saveScore('${ind.id}', ${score})">
+                                        <div class="p-3 text-center border border-slate-200 rounded-lg text-xs font-bold text-slate-500 bg-white transition-all peer-focus:ring-2 peer-focus:ring-indigo-500">Skor ${score}</div>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>`;
+                });
+                html += `</div></div></div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderDokumenWajib() {
+            document.getElementById('checklist-dokumen').innerHTML = dokumenWajib.map((doc, idx) => `
+                <li class="flex items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <div class="bg-indigo-100 text-indigo-700 w-6 h-6 rounded flex items-center justify-center text-xs font-bold shrink-0">${idx + 1}</div>
+                    <span class="text-sm font-medium text-slate-700">${doc}</span>
+                </li>`).join('');
+        }
+
+        function renderReferensi() {
+            document.getElementById('referensi-container').innerHTML = referensiList.map(ref => `
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-start gap-3"><i class="ph-fill ph-book-bookmark text-xl text-indigo-400 mt-1 shrink-0"></i><p class="text-xs text-slate-600 leading-relaxed text-justify">${ref}</p></div>
+            `).join('');
+        }
+
+        function toggleAccordion(id) {
+            const content = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id);
+            if (content.classList.contains('hidden-smooth')) {
+                content.classList.remove('hidden-smooth'); content.classList.add('show-smooth'); icon.style.transform = 'rotate(180deg)';
+            } else {
+                content.classList.remove('show-smooth'); content.classList.add('hidden-smooth'); icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function saveScore(id, val) {
+            auditData[id] = val;
+            localStorage.setItem('auditInklusiData', JSON.stringify(auditData));
+            calculateAndUpdateDashboard();
+        }
+
+        function calculateAndUpdateDashboard() {
+            let totalWeightedScore = 0; let answeredCount = 0; let totalIndicators = 0; let dimHtml = '';
+            framework.forEach((dim) => {
+                let dimSum = 0; let dimAnswered = 0; const dimTotalInd = dim.indicators.length; totalIndicators += dimTotalInd;
+                dim.indicators.forEach(ind => { if (auditData[ind.id]) { dimSum += parseInt(auditData[ind.id]); dimAnswered++; answeredCount++; } });
+                const dimPercentage = (dimTotalInd * 4) > 0 ? (dimSum / (dimTotalInd * 4)) : 0;
+                totalWeightedScore += dimPercentage * dim.weight;
+                const progressPct = Math.round((dimAnswered / dimTotalInd) * 100);
+                const isComplete = dimAnswered === dimTotalInd;
+
+                dimHtml += `
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden print:border-slate-400">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="text-xs font-bold text-slate-700 w-3/4 leading-tight">${dim.title}</h4>
+                        <span class="text-[10px] font-bold ${isComplete ? 'text-green-600 bg-green-100' : 'text-slate-500 bg-slate-100'} px-2 py-0.5 rounded">${dimAnswered}/${dimTotalInd}</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-1.5 mt-3 no-print">
+                        <div class="bg-${isComplete ? 'green-500' : 'indigo-500'} h-1.5 rounded-full" style="width: ${progressPct}%"></div>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-2">Nilai Ekstrak: ${Math.round(dimPercentage * dim.weight)} / ${dim.weight}</p>
+                </div>`;
+            });
+
+            const finalScore = Math.round(totalWeightedScore);
+            document.getElementById("dash-score").innerText = finalScore;
+            
+            const globalProgress = (answeredCount / totalIndicators) * 100;
+            document.getElementById('dash-progress-text').innerText = `${answeredCount} / ${totalIndicators}`;
+            document.getElementById('dash-progress-bar').style.width = `${globalProgress}%`;
+
+            const statusEl = document.getElementById('dash-status-text');
+            const iconEl = document.getElementById('dash-status-icon');
+            const wrapperEl = statusEl.parentElement;
+
+            let statusText = "Belum Diisi"; let statusIcon = "ph-warning-circle text-yellow-300"; let bgClass = "bg-white/20 border-white/30";
+            if (answeredCount > 0) {
+                if (finalScore <= 40) { statusText = "Belum Inklusif"; statusIcon = "ph-x-circle text-red-300"; bgClass = "bg-red-500/30 border-red-400/50"; } 
+                else if (finalScore <= 60) { statusText = "Inklusif Dasar"; statusIcon = "ph-info text-orange-300"; bgClass = "bg-orange-500/30 border-orange-400/50"; } 
+                else if (finalScore <= 80) { statusText = "Inklusif Berkembang"; statusIcon = "ph-trend-up text-blue-300"; bgClass = "bg-blue-500/30 border-blue-400/50"; } 
+                else if (finalScore <= 90) { statusText = "Inklusif Maju"; statusIcon = "ph-check-circle text-emerald-300"; bgClass = "bg-emerald-500/30 border-emerald-400/50"; } 
+                else { statusText = "Inklusif Unggul 🏆"; statusIcon = "ph-star text-yellow-300"; bgClass = "bg-yellow-500/30 border-yellow-400/50"; }
+            }
+
+            statusEl.innerText = statusText;
+            iconEl.className = `ph-fill ${statusIcon} text-xl`;
+            wrapperEl.className = `mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full border shadow-inner backdrop-blur-md transition-colors ${bgClass}`;
+            document.getElementById('dimension-progress-container').innerHTML = dimHtml;
+        }
+
+        // ==========================================
+        // KIRIM KE GOOGLE FORM
+        // ==========================================
+        function submitToGoogleForm() {
+            if (!schoolProfile.nama || !schoolProfile.npsn) {
+                alert("Silakan lengkapi Profil Sekolah terlebih dahulu sebelum mengirim data.");
+                openProfileModal();
+                return;
+            }
+
+            const btnSync = document.getElementById('btn-sync-gform');
+            btnSync.innerHTML = `<i class="ph-bold ph-spinner animate-spin"></i> Mengirim...`;
+            btnSync.disabled = true;
+
+            const skorAkhir = document.getElementById('dash-score').innerText;
+            const kategori = document.getElementById('dash-status-text').innerText;
+            
+            // Kompres payload JSON (Jika perlu disimpan murni ke database spreadsheet)
+            const payloadData = { auditData, uploadedFiles };
+            let stringPayload = JSON.stringify(payloadData);
+            if(stringPayload.length > 20000) stringPayload = stringPayload.substring(0, 20000); // Mencegah payload terlalu berat
+
+            const formData = new URLSearchParams();
+            formData.append('entry.476029109', schoolProfile.nama);
+            formData.append('entry.877305655', schoolProfile.auditor);
+            formData.append('entry.454004917', schoolProfile.npsn);
+            formData.append('entry.1821954544', skorAkhir);
+            formData.append('entry.1266935825', kategori);
+            formData.append('entry.1992810689', stringPayload);
+
+            // URL Google Form diubah dari /viewform menjadi /formResponse
+            const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSclg_rvLtFMuqcnqzUNCGbZm37_9M2m3S-3RCDNjRSRCcdQjQ/formResponse';
+
+            fetch(formUrl, {
+                method: 'POST',
+                mode: 'no-cors', // Bebas dari block browser CORS
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData.toString()
+            })
+            .then(() => {
+                alert("✅ Data berhasil dikirim ke server pusat!");
+            })
+            .catch((error) => {
+                alert("❌ Gagal mengirim data. Pastikan perangkat Anda terhubung ke internet.");
+            })
+            .finally(() => {
+                btnSync.innerHTML = `<i class="ph-bold ph-paper-plane-tilt"></i> Kirim ke Server GForm`;
+                btnSync.disabled = false;
+            });
+        }
+
+        // ==========================================
+        // FITUR DATA (RESET, EXPORT, LOAD, UPLOAD)
+        // ==========================================
+        function resetData() {
+            if(confirm('⚠️ PERHATIAN!\n\nSeluruh data audit akan dihapus secara permanen.\nLanjutkan?')) {
+                auditData = {}; uploadedFiles = {};
+                localStorage.removeItem('auditInklusiData'); localStorage.removeItem('auditUploadedFiles');
+                renderAuditForm(); calculateAndUpdateDashboard();
+            }
+        }
+
+        function exportDataJSON() {
+            const dataToSave = { app: "Audit_Inklusi_App", timestamp: new Date().toISOString(), schoolProfile, auditData, uploadedFiles };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToSave, null, 2));
+            const dlNode = document.createElement('a'); dlNode.setAttribute("href", dataStr);
+            dlNode.setAttribute("download", `Audit_Inklusi_${schoolProfile.nama || 'Sekolah'}_${Date.now()}.json`);
+            document.body.appendChild(dlNode); dlNode.click(); dlNode.remove();
+        }
+
+        function triggerLoadJSON() { document.getElementById('load-json-input').click(); }
+
+        function handleLoadJSON(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.app === "Audit_Inklusi_App" || (data.auditData)) {
+                        if (!confirm("⚠️ Data saat ini akan DITIMPA dengan data dari file JSON.\nYakin?")) { event.target.value = ''; return; }
+                        schoolProfile = data.schoolProfile || { nama: '', npsn: '', auditor: '' };
+                        auditData = data.auditData || {}; uploadedFiles = data.uploadedFiles || {};
+                        localStorage.setItem('auditSchoolProfile', JSON.stringify(schoolProfile));
+                        localStorage.setItem('auditInklusiData', JSON.stringify(auditData));
+                        localStorage.setItem('auditUploadedFiles', JSON.stringify(uploadedFiles));
+                        updateProfileUI(); renderAuditForm(); calculateAndUpdateDashboard();
+                        alert("✅ Data berhasil dimuat!");
+                    } else alert("❌ Format JSON tidak dikenali.");
+                } catch (err) { alert("❌ Gagal membaca file rusak."); }
+            };
+            reader.readAsText(file); event.target.value = '';
+        }
+
+        // Modal Upload Simulator
+        function openUploadModal(id, name) { document.getElementById('current-upload-id').value = id; document.getElementById('upload-indicator-name').innerText = name; const m = document.getElementById('upload-modal'); const c = document.getElementById('upload-modal-content'); m.classList.remove('hidden'); setTimeout(() => { m.classList.add('opacity-100'); c.classList.remove('scale-95'); c.classList.add('scale-100'); }, 10); }
+        function closeUploadModal() { const m = document.getElementById('upload-modal'); const c = document.getElementById('upload-modal-content'); m.classList.remove('opacity-100'); c.classList.remove('scale-100'); c.classList.add('scale-95'); setTimeout(() => { m.classList.add('hidden'); }, 300); }
+        function simulateUpload() {
+            const id = document.getElementById('current-upload-id').value;
+            document.querySelector('#upload-modal .text-indigo-700').innerText = "Mengunggah..."; document.querySelector('#upload-modal .ph-file-arrow-up').className = "ph-bold ph-spinner animate-spin text-4xl text-indigo-400 mb-2";
+            setTimeout(() => {
+                uploadedFiles[id] = true; localStorage.setItem('auditUploadedFiles', JSON.stringify(uploadedFiles));
+                const btn = document.getElementById('btn-upload-' + id);
+                btn.className = "no-print shrink-0 flex items-center gap-2 text-xs font-bold border px-3 py-2 rounded-lg transition-colors bg-green-50 text-green-700 border-green-300";
+                btn.innerHTML = `<i class="ph-bold ph-check-circle text-green-500 text-lg"></i> <span>Dokumen Tersimpan</span>`;
+                document.querySelector('#upload-modal .text-indigo-700').innerText = "Klik untuk Pilih File"; document.querySelector('#upload-modal .ph-spinner').className = "ph-fill ph-file-arrow-up text-4xl text-indigo-400 mb-2";
+                closeUploadModal();
+            }, 800);
+        }
+    </script>
+</body>
+</html>
