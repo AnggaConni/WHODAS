@@ -20,7 +20,6 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
-                        // Palet Warna Khas Pearson (Navy, Purple, Teal, Grey)
                         pearsonNavy: '#002855',
                         pearsonPurple: '#652366',
                         pearsonTeal: '#007078',
@@ -36,7 +35,6 @@
     <style>
         body { font-family: 'Inter', sans-serif; color: #333333; background-color: #ffffff; }
         
-        /* Tema Content Tile ala Pearson */
         .content-tile {
             transition: all 0.2s ease;
             border: 1px solid #e5e5e5;
@@ -45,17 +43,60 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
         
-        /* Banner ala Pearson */
         .hero-banner {
             background-image: linear-gradient(to right, rgba(0, 40, 85, 0.95) 0%, rgba(0, 40, 85, 0.7) 100%), url('https://images.unsplash.com/photo-1577896851231-70ef18881754?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');
             background-size: cover;
             background-position: center;
         }
+
+        /* === TAMBAHAN CSS === */
+
+        /* Pilar cards hover */
+        .pillar-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 1px solid #e5e5e5;
+        }
+        .pillar-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        /* Tokoh card */
+        .author-card {
+            transition: all 0.2s ease;
+            border: 1px solid #e5e5e5;
+        }
+        .author-card:hover {
+            box-shadow: 0 4px 14px rgba(0,0,0,0.09);
+        }
+
+        /* Referensi accordion */
+        .ref-item {
+            border-bottom: 1px solid #e5e5e5;
+            transition: background 0.15s;
+        }
+        .ref-item:last-child { border-bottom: none; }
+        .ref-item:hover { background: #f9f9f9; }
+
+        /* Stat counters */
+        .stat-box {
+            border-left: 3px solid;
+        }
+
+        /* Framework tag pill */
+        .framework-pill {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            padding: 2px 10px;
+            border-radius: 20px;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col relative overflow-x-hidden">
 
-    <!-- Utility Bar (Ciri khas web enterprise/Pearson) -->
+    <!-- Utility Bar -->
     <div class="bg-pearsonGrey border-b border-gray-200 py-2 hidden md:block">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-end space-x-6 text-sm text-gray-600">
             <a href="#" class="hover:text-pearsonNavy">Panduan Aksesibilitas</a>
@@ -94,7 +135,7 @@
     <!-- Main Content -->
     <main class="flex-grow w-full relative z-10 flex flex-col">
         
-        <!-- Hero Section ala Pearson -->
+        <!-- Hero Section -->
         <div class="hero-banner w-full text-white py-20 lg:py-28">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:w-2/3">
                 <span class="text-sm font-semibold tracking-wider uppercase mb-3 text-gray-300">Penilaian & Solusi Pendidikan</span>
@@ -110,6 +151,32 @@
             </div>
         </div>
 
+        <!-- ============================================================ -->
+        <!-- TAMBAHAN: SECTION STATISTIK KONTEKS                         -->
+        <!-- ============================================================ -->
+        <div class="bg-pearsonNavy py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                    <div class="stat-box border-pearsonTeal pl-5">
+                        <p class="text-3xl font-bold text-white">15+</p>
+                        <p class="text-sm text-gray-300 font-light mt-1">Kerangka & literatur rujukan global</p>
+                    </div>
+                    <div class="stat-box border-pearsonPurple pl-5" style="border-color:#652366;">
+                        <p class="text-3xl font-bold text-white">4</p>
+                        <p class="text-sm text-gray-300 font-light mt-1">Modul asesmen terintegrasi</p>
+                    </div>
+                    <div class="stat-box border-blue-400 pl-5">
+                        <p class="text-3xl font-bold text-white">UN CRPD</p>
+                        <p class="text-sm text-gray-300 font-light mt-1">Pasal 24 — Hak pendidikan inklusif</p>
+                    </div>
+                    <div class="stat-box border-gray-400 pl-5">
+                        <p class="text-3xl font-bold text-white">SDG 4</p>
+                        <p class="text-sm text-gray-300 font-light mt-1">Pendidikan berkualitas & inklusif</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Modul Aplikasi (Content Tiles) -->
         <div id="modul" class="bg-pearsonGrey py-16">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -120,47 +187,47 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     
-                    <!-- Tile 1: UDL (CAST) -->
-                    <a href="udl.html" class="content-tile bg-white border-t-4 border-t-pearsonTeal flex flex-col h-full p-8 relative group">
-                        <h3 class="text-lg font-semibold text-pearsonNavy mb-3">Instrumen UDL K-12</h3>
+                    <!-- Tile: Skrining Disabilitas -->
+                    <a href="type.html" class="content-tile bg-white border-t-4 border-t-indigo-600 flex flex-col h-full p-8 relative group shadow-sm transition-all hover:shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Skrining Ragam Disabilitas</h3>
                         <p class="text-sm text-gray-600 mb-6 flex-grow font-light">
-                            Panduan dan evaluasi penerapan <i>Universal Design for Learning</i> (UDL) untuk memastikan akses kurikulum bagi semua siswa (CAST, 2024).
+                            Penilaian hambatan fungsi berbasis instrumen internasional (WG-SS, WHODAS 2.0, K6) untuk identifikasi disabilitas sesuai UU RI No. 8/2016.
                         </p>
-                        <div class="mt-auto text-pearsonTeal font-semibold text-sm group-hover:underline flex items-center">
-                            Buka Asesmen <i class="fa-solid fa-chevron-right ml-2 text-xs"></i>
+                        <div class="mt-auto text-indigo-600 font-semibold text-sm group-hover:underline flex items-center">
+                            Mulai Asesmen <i class="fa-solid fa-chevron-right ml-2 text-xs"></i>
                         </div>
                     </a>
 
-                    <!-- Tile 2: Index for Inclusion -->
-                    <a href="index-inclusion.html" class="content-tile bg-white border-t-4 border-t-pearsonPurple flex flex-col h-full p-8 relative group">
-                        <h3 class="text-lg font-semibold text-pearsonNavy mb-3">Indeks Inklusi Sekolah</h3>
+                    <!-- Tile: WHODAS 2.0 Assessment -->
+                    <a href="whodas.html" class="content-tile bg-white border-t-4 border-t-teal-600 flex flex-col h-full p-8 relative group shadow-sm transition-all hover:shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Assesment WHODAS 2.0</h3>
                         <p class="text-sm text-gray-600 mb-6 flex-grow font-light">
-                            Alat ukur mandiri berbasis <i>Index for Inclusion</i> (Booth & Ainscow, 2016) untuk mengembangkan nilai dan praktik inklusif di lingkungan sekolah.
+                            Instrumen standar WHO (36-Item) untuk mengukur derajat disabilitas dan keterbatasan fungsional dalam 6 domain kehidupan utama.
                         </p>
-                        <div class="mt-auto text-pearsonPurple font-semibold text-sm group-hover:underline flex items-center">
-                            Mulai Evaluasi <i class="fa-solid fa-chevron-right ml-2 text-xs"></i>
+                        <div class="mt-auto text-teal-600 font-semibold text-sm group-hover:underline flex items-center">
+                            Mulai Assesment <i class="fa-solid fa-chevron-right ml-2 text-xs"></i>
                         </div>
                     </a>
 
-                    <!-- Tile 3: Dashboard Accountability -->
-                    <a href="dashboard.html" class="content-tile bg-white border-t-4 border-t-blue-600 flex flex-col h-full p-8 relative group">
-                        <h3 class="text-lg font-semibold text-pearsonNavy mb-3">Dashboard Akuntabilitas</h3>
+                    <!-- Tile 3: Command Center Dashboard -->
+                    <a href="dashboard.html" class="content-tile bg-white border-t-4 border-t-blue-600 flex flex-col h-full p-8 relative group shadow-sm transition-all hover:shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Command Center Inklusi</h3>
                         <p class="text-sm text-gray-600 mb-6 flex-grow font-light">
-                            Pemetaan demografi dan kepatuhan daerah berdasarkan <i>Disability Inclusion and Accountability Framework</i> (World Bank, 2022).
+                            Dashboard monitoring <em>real-time</em> untuk pemetaan data, audit dimensi inklusivitas, serta analisis tren kepatuhan sekolah secara terpusat.
                         </p>
                         <div class="mt-auto text-blue-600 font-semibold text-sm group-hover:underline flex items-center">
-                            Lihat Statistik <i class="fa-solid fa-chevron-right ml-2 text-xs"></i>
+                            Buka Dashboard <i class="fa-solid fa-chevron-right ml-2 text-xs"></i>
                         </div>
                     </a>
 
                     <!-- Tile 4: CRPD / Special Ed -->
-                    <a href="report.html" class="content-tile bg-white border-t-4 border-t-gray-600 flex flex-col h-full p-8 relative group">
-                        <h3 class="text-lg font-semibold text-pearsonNavy mb-3">Pemenuhan Hak (CRPD)</h3>
-                        <p class="text-sm text-gray-600 mb-6 flex-grow font-light">
+                    <a href="report.html" class="bg-white border-t-4 border-t-indigo-600 flex flex-col h-full p-6 relative group shadow-sm transition-all hover:shadow-md rounded-xl">
+                        <h3 class="text-lg font-semibold text-indigo-900 mb-2">Pemenuhan Hak (CRPD)</h3>
+                        <p class="text-sm text-slate-600 mb-6 flex-grow font-light">
                             Sistem pelaporan implementasi Pasal 24 UN CRPD dan pedoman pendidikan khusus yang mengeliminasi ableism dalam kebijakan lokal.
                         </p>
-                        <div class="mt-auto text-gray-700 font-semibold text-sm group-hover:underline flex items-center">
-                            Unduh Laporan <i class="fa-solid fa-chevron-right ml-2 text-xs"></i>
+                        <div class="mt-auto text-indigo-600 font-semibold text-sm group-hover:underline flex items-center">
+                            Unduh Laporan <i class="ph-bold ph-caret-right ml-2 text-xs"></i>
                         </div>
                     </a>
 
@@ -168,64 +235,445 @@
             </div>
         </div>
 
-        <!-- Referensi & Knowledge Base Section -->
+        <!-- ============================================================ -->
+        <!-- TAMBAHAN: TIGA PILAR PENDIDIKAN INKLUSIF                    -->
+        <!-- ============================================================ -->
         <div class="bg-white py-16 border-b border-pearsonLightGrey">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <span class="text-xs font-semibold tracking-widest uppercase text-pearsonTeal">Fondasi Konseptual</span>
+                    <h2 class="text-2xl font-light text-pearsonNavy mt-2">Tiga Pilar Pendidikan Inklusif</h2>
+                    <p class="text-sm text-gray-500 mt-2 max-w-xl mx-auto font-light">
+                        SIDANIDA dibangun di atas tiga kerangka utama yang saling melengkapi untuk menciptakan ekosistem pendidikan yang benar-benar inklusif.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+                    <!-- Pilar 1: UDL -->
+                    <div class="pillar-card bg-white p-8 rounded">
+                        <div class="w-12 h-12 rounded bg-pearsonTeal bg-opacity-10 flex items-center justify-center mb-5">
+                            <i class="fa-solid fa-drafting-compass text-pearsonTeal text-xl"></i>
+                        </div>
+                        <span class="framework-pill bg-teal-50 text-pearsonTeal mb-4 inline-block">Universal Design for Learning</span>
+                        <h3 class="text-lg font-semibold text-pearsonNavy mb-3">Desain Pembelajaran untuk Semua</h3>
+                        <p class="text-sm text-gray-600 font-light leading-relaxed mb-5">
+                            UDL menyediakan kerangka ilmiah berbasis neurosains untuk merancang kurikulum fleksibel yang mengakomodasi keberagaman cara belajar. Pendekatan ini menjamin setiap siswa memiliki akses yang setara terhadap materi, metode, dan penilaian.
+                        </p>
+                        <ul class="space-y-2 text-xs text-gray-500 font-light">
+                            <li class="flex items-start"><i class="fa-solid fa-circle-dot text-pearsonTeal mr-2 mt-0.5 text-[10px]"></i><span>Representasi: beragam cara menyajikan informasi</span></li>
+                            <li class="flex items-start"><i class="fa-solid fa-circle-dot text-pearsonTeal mr-2 mt-0.5 text-[10px]"></i><span>Aksi & Ekspresi: fleksibilitas dalam menunjukkan pemahaman</span></li>
+                            <li class="flex items-start"><i class="fa-solid fa-circle-dot text-pearsonTeal mr-2 mt-0.5 text-[10px]"></i><span>Keterlibatan: memotivasi dan mempertahankan minat belajar</span></li>
+                        </ul>
+                        <p class="text-xs text-gray-400 mt-5 italic">CAST (2024); Rose & Meyer (2002)</p>
+                    </div>
+
+                    <!-- Pilar 2: Inklusi Sekolah -->
+                    <div class="pillar-card bg-white p-8 rounded">
+                        <div class="w-12 h-12 rounded bg-pearsonPurple bg-opacity-10 flex items-center justify-center mb-5">
+                            <i class="fa-solid fa-people-group text-pearsonPurple text-xl"></i>
+                        </div>
+                        <span class="framework-pill bg-purple-50 text-pearsonPurple mb-4 inline-block">Index for Inclusion</span>
+                        <h3 class="text-lg font-semibold text-pearsonNavy mb-3">Budaya, Kebijakan & Praktik Sekolah</h3>
+                        <p class="text-sm text-gray-600 font-light leading-relaxed mb-5">
+                            <i>Index for Inclusion</i> (Booth & Ainscow) menawarkan proses mandiri bagi sekolah untuk mengidentifikasi hambatan partisipasi dan mengembangkan nilai-nilai inklusif yang melekat pada tiga dimensi utama ekosistem sekolah.
+                        </p>
+                        <ul class="space-y-2 text-xs text-gray-500 font-light">
+                            <li class="flex items-start"><i class="fa-solid fa-circle-dot text-pearsonPurple mr-2 mt-0.5 text-[10px]"></i><span>Budaya: membangun komunitas yang saling mendukung</span></li>
+                            <li class="flex items-start"><i class="fa-solid fa-circle-dot text-pearsonPurple mr-2 mt-0.5 text-[10px]"></i><span>Kebijakan: mengembangkan sekolah yang inklusif</span></li>
+                            <li class="flex items-start"><i class="fa-solid fa-circle-dot text-pearsonPurple mr-2 mt-0.5 text-[10px]"></i><span>Praktik: mengorkestrasikan pembelajaran bagi semua</span></li>
+                        </ul>
+                        <p class="text-xs text-gray-400 mt-5 italic">Booth & Ainscow (2016); CSIE (2011); Ainscow (2020)</p>
+                    </div>
+
+                    <!-- Pilar 3: Hak & Akuntabilitas -->
+                    <div class="pillar-card bg-white p-8 rounded">
+                        <div class="w-12 h-12 rounded bg-blue-50 flex items-center justify-center mb-5">
+                            <i class="fa-solid fa-scale-balanced text-blue-600 text-xl"></i>
+                        </div>
+                        <span class="framework-pill bg-blue-50 text-blue-600 mb-4 inline-block">Hak & Akuntabilitas</span>
+                        <h3 class="text-lg font-semibold text-pearsonNavy mb-3">Kerangka Hak & Kepatuhan Global</h3>
+                        <p class="text-sm text-gray-600 font-light leading-relaxed mb-5">
+                            Pendidikan inklusif adalah hak fundamental yang dijamin Pasal 24 UN CRPD. Akuntabilitas daerah diukur melalui kerangka World Bank yang memastikan komitmen negara pada kesetaraan dan eliminasi diskriminasi dalam sistem pendidikan.
+                        </p>
+                        <ul class="space-y-2 text-xs text-gray-500 font-light">
+                            <li class="flex items-start"><i class="fa-solid fa-circle-dot text-blue-500 mr-2 mt-0.5 text-[10px]"></i><span>UN CRPD Pasal 24: hak atas pendidikan inklusif</span></li>
+                            <li class="flex items-start"><i class="fa-solid fa-circle-dot text-blue-500 mr-2 mt-0.5 text-[10px]"></i><span>Penghapusan ableism dalam kebijakan dan praktik</span></li>
+                            <li class="flex items-start"><i class="fa-solid fa-circle-dot text-blue-500 mr-2 mt-0.5 text-[10px]"></i><span>Indikator kepatuhan berbasis data daerah</span></li>
+                        </ul>
+                        <p class="text-xs text-gray-400 mt-5 italic">UN (2006); World Bank (2022); Hehir (2005)</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAMBAHAN: TOKOH & KONTRIBUTOR KUNCI                         -->
+        <!-- ============================================================ -->
+        <div class="bg-pearsonGrey py-16 border-b border-pearsonLightGrey">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+                    <div>
+                        <span class="text-xs font-semibold tracking-widest uppercase text-pearsonPurple">Literatur Akademis</span>
+                        <h2 class="text-2xl font-light text-pearsonNavy mt-2">Kontributor & Pemikir Utama</h2>
+                    </div>
+                    <p class="text-sm text-gray-500 font-light max-w-sm text-right">
+                        Karya-karya ilmiah berikut membentuk landasan konseptual dan metodologis SIDANIDA.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+
+                    <!-- Card: Rose & Meyer -->
+                    <div class="author-card bg-white p-6 rounded">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-9 h-9 rounded-full bg-pearsonTeal bg-opacity-15 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-user text-pearsonTeal text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-pearsonNavy leading-tight">David H. Rose & Anne Meyer</p>
+                                <p class="text-xs text-gray-400 font-light">CAST, Harvard</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600 font-light leading-relaxed mb-3">
+                            Pelopor kerangka UDL modern. Buku <i>Teaching Every Student in the Digital Age</i> (2002) meletakkan fondasi ilmiah tentang bagaimana otak belajar secara berbeda dan merancang kurikulum yang merespons keberagaman tersebut.
+                        </p>
+                        <span class="framework-pill bg-teal-50 text-pearsonTeal">UDL Framework</span>
+                    </div>
+
+                    <!-- Card: Booth & Ainscow -->
+                    <div class="author-card bg-white p-6 rounded">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-9 h-9 rounded-full bg-pearsonPurple bg-opacity-10 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-user text-pearsonPurple text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-pearsonNavy leading-tight">Tony Booth & Mel Ainscow</p>
+                                <p class="text-xs text-gray-400 font-light">Index for Inclusion Network</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600 font-light leading-relaxed mb-3">
+                            Penulis <i>Index for Inclusion</i> (ed. ke-4, 2016), panduan paling berpengaruh dalam pengembangan sekolah inklusif berbasis nilai. Ainscow juga berkontribusi pada kajian UNESCO (2020) tentang tren inklusi global.
+                        </p>
+                        <span class="framework-pill bg-purple-50 text-pearsonPurple">School Inclusion</span>
+                    </div>
+
+                    <!-- Card: Hehir -->
+                    <div class="author-card bg-white p-6 rounded">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-user text-gray-500 text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-pearsonNavy leading-tight">Thomas Hehir</p>
+                                <p class="text-xs text-gray-400 font-light">Harvard Graduate School of Education</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600 font-light leading-relaxed mb-3">
+                            Mantan Direktur Kantor Program Pendidikan Khusus AS. Karya <i>New Directions in Special Education</i> (2005) menjadi rujukan utama dalam mengidentifikasi dan menghapus ableism sistemik dari kebijakan dan praktik pendidikan.
+                        </p>
+                        <span class="framework-pill bg-gray-100 text-gray-600">Special Education Policy</span>
+                    </div>
+
+                    <!-- Card: Florian -->
+                    <div class="author-card bg-white p-6 rounded">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-user text-blue-500 text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-pearsonNavy leading-tight">Lani Florian</p>
+                                <p class="text-xs text-gray-400 font-light">University of Edinburgh</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600 font-light leading-relaxed mb-3">
+                            Editor <i>The SAGE Handbook of Special Education</i> (ed. ke-2, 2014), referensi komprehensif yang mengintegrasikan perspektif kebijakan, penelitian, dan praktik pendidikan khusus dalam konteks inklusi global.
+                        </p>
+                        <span class="framework-pill bg-blue-50 text-blue-600">Research & Policy</span>
+                    </div>
+
+                    <!-- Card: Kauffman, Hallahan & Pullen -->
+                    <div class="author-card bg-white p-6 rounded">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-9 h-9 rounded-full bg-orange-50 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-users text-orange-500 text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-pearsonNavy leading-tight">Kauffman, Hallahan & Pullen</p>
+                                <p class="text-xs text-gray-400 font-light">Routledge, 2018</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600 font-light leading-relaxed mb-3">
+                            <i>Handbook of Special Education</i> merupakan referensi ensiklopedis yang mencakup klasifikasi disabilitas, metodologi intervensi, kerangka hukum, dan praktik terbaik pendidikan khusus berbasis evidens.
+                        </p>
+                        <span class="framework-pill bg-orange-50 text-orange-600">Special Education</span>
+                    </div>
+
+                    <!-- Card: Mittler & Sailor -->
+                    <div class="author-card bg-white p-6 rounded">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-users text-green-600 text-sm"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-semibold text-pearsonNavy leading-tight">Peter Mittler & Wayne Sailor</p>
+                                <p class="text-xs text-gray-400 font-light">David Fulton / Teachers College Press</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600 font-light leading-relaxed mb-3">
+                            Mittler (2000) mengkaji konteks sosial inklusi, sedangkan Sailor (2015) membahas reformasi sekolah inklusif menyeluruh (<i>schoolwide inclusive school reform</i>) sebagai model transformasi sistemik berbasis komunitas.
+                        </p>
+                        <span class="framework-pill bg-green-50 text-green-700">Systemic Reform</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAMBAHAN: KERANGKA INTERNASIONAL                            -->
+        <!-- ============================================================ -->
+        <div class="bg-white py-16 border-b border-pearsonLightGrey">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-10">
+                    <span class="text-xs font-semibold tracking-widest uppercase text-blue-600">Regulasi & Standar</span>
+                    <h2 class="text-2xl font-light text-pearsonNavy mt-2">Kerangka Kebijakan Internasional</h2>
+                    <p class="text-sm text-gray-500 mt-2 font-light">Standar global yang menjadi rujukan penilaian akuntabilitas daerah</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <!-- UN CRPD -->
+                    <div class="flex items-start space-x-5 p-6 border border-pearsonLightGrey rounded bg-white">
+                        <div class="w-12 h-12 shrink-0 bg-pearsonNavy text-white rounded flex items-center justify-center">
+                            <i class="fa-solid fa-earth-asia text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">United Nations, 2006</p>
+                            <h4 class="font-semibold text-pearsonNavy mb-2">UN CRPD — Pasal 24: Pendidikan</h4>
+                            <p class="text-sm text-gray-600 font-light leading-relaxed">
+                                Konvensi Hak Penyandang Disabilitas PBB mewajibkan negara-negara anggota untuk memastikan sistem pendidikan inklusif di semua jenjang tanpa diskriminasi dan atas dasar kesetaraan peluang bagi penyandang disabilitas.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- UNESCO -->
+                    <div class="flex items-start space-x-5 p-6 border border-pearsonLightGrey rounded bg-white">
+                        <div class="w-12 h-12 shrink-0 bg-pearsonTeal text-white rounded flex items-center justify-center">
+                            <i class="fa-solid fa-landmark text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">UNESCO, 2020</p>
+                            <h4 class="font-semibold text-pearsonNavy mb-2">Towards Inclusion in Education</h4>
+                            <p class="text-sm text-gray-600 font-light leading-relaxed">
+                                Laporan ini memetakan status, tren, dan tantangan inklusi pendidikan global, memberikan analisis berbasis data yang menjadi acuan penting bagi kebijakan daerah dalam menyusun strategi menuju pendidikan yang tidak meninggalkan siapapun.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- World Bank -->
+                    <div class="flex items-start space-x-5 p-6 border border-pearsonLightGrey rounded bg-white">
+                        <div class="w-12 h-12 shrink-0 bg-blue-600 text-white rounded flex items-center justify-center">
+                            <i class="fa-solid fa-chart-pie text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">World Bank, 2022</p>
+                            <h4 class="font-semibold text-pearsonNavy mb-2">Disability Inclusion & Accountability Framework</h4>
+                            <p class="text-sm text-gray-600 font-light leading-relaxed">
+                                Kerangka akuntabilitas yang menetapkan indikator, mekanisme pelaporan, dan standar kepatuhan untuk mengintegrasikan inklusi disabilitas ke dalam kebijakan, program, dan layanan pembangunan di tingkat daerah.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- OECD & UNICEF -->
+                    <div class="flex items-start space-x-5 p-6 border border-pearsonLightGrey rounded bg-white">
+                        <div class="w-12 h-12 shrink-0 bg-pearsonPurple text-white rounded flex items-center justify-center">
+                            <i class="fa-solid fa-child text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">OECD (2019) & UNICEF (2021)</p>
+                            <h4 class="font-semibold text-pearsonNavy mb-2">Inclusive Education for Diverse Societies</h4>
+                            <p class="text-sm text-gray-600 font-light leading-relaxed">
+                                OECD mengkaji model pendidikan inklusif lintas negara, sementara panduan UNICEF (2021) memberikan arahan praktis bagi pemerintah daerah dalam merancang lingkungan belajar yang responsif terhadap kebutuhan semua anak.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Referensi & Knowledge Base Section (DIPERLUAS) -->
+        <div class="bg-pearsonGrey py-16 border-b border-pearsonLightGrey">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
                     <div class="lg:col-span-1">
-                        <h2 class="text-2xl font-light text-pearsonNavy mb-4">Literatur Rujukan & Standar Global</h2>
+                        <span class="text-xs font-semibold tracking-widest uppercase text-pearsonTeal">Basis Pengetahuan</span>
+                        <h2 class="text-2xl font-light text-pearsonNavy mt-2 mb-4">Literatur Rujukan & Standar Global</h2>
                         <p class="text-sm text-gray-600 font-light mb-6">
                             Kerangka kerja SIDANIDA disusun berdasarkan riset, literatur akademis, dan pedoman internasional dari organisasi pendidikan global guna menjamin mutu asesmen disabilitas daerah.
                         </p>
-                        <a href="#" class="text-pearsonPurple text-sm font-semibold hover:underline">Lihat Semua Publikasi <i class="fa-solid fa-arrow-right text-xs ml-1"></i></a>
+                        <div class="bg-white border border-pearsonLightGrey rounded p-5 text-sm">
+                            <p class="font-semibold text-pearsonNavy mb-3 text-xs uppercase tracking-wider">Kategori Referensi</p>
+                            <ul class="space-y-2 text-gray-600 font-light">
+                                <li class="flex items-center"><span class="w-2 h-2 rounded-full bg-pearsonTeal mr-2 shrink-0"></span>Kerangka UDL & Pedagogi Inklusif</li>
+                                <li class="flex items-center"><span class="w-2 h-2 rounded-full bg-pearsonPurple mr-2 shrink-0"></span>Inklusi Sekolah & Komunitas</li>
+                                <li class="flex items-center"><span class="w-2 h-2 rounded-full bg-blue-500 mr-2 shrink-0"></span>Kebijakan Hak & Regulasi Internasional</li>
+                                <li class="flex items-center"><span class="w-2 h-2 rounded-full bg-gray-400 mr-2 shrink-0"></span>Pendidikan Khusus & Riset Disabilitas</li>
+                            </ul>
+                        </div>
+                        <a href="#" class="text-pearsonPurple text-sm font-semibold hover:underline mt-5 inline-block">Lihat Semua Publikasi <i class="fa-solid fa-arrow-right text-xs ml-1"></i></a>
                     </div>
                     
-                    <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- List Referensi Ala Pearson -->
-                        <ul class="space-y-4 text-sm font-light text-gray-600">
-                            <li class="flex items-start">
-                                <i class="fa-solid fa-book text-gray-400 mt-1 mr-3"></i>
-                                <span><strong>UNESCO (2020)</strong>. Towards inclusion in education: Status, trends and challenges.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fa-solid fa-book text-gray-400 mt-1 mr-3"></i>
-                                <span><strong>CAST (2024)</strong>. Universal Design for Learning (UDL) guidelines.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fa-solid fa-book text-gray-400 mt-1 mr-3"></i>
-                                <span><strong>Booth, T., & Ainscow, M. (2016)</strong>. The index for inclusion: A guide to school development led by inclusive values.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fa-solid fa-book text-gray-400 mt-1 mr-3"></i>
-                                <span><strong>United Nations (2006)</strong>. Convention on the Rights of Persons with Disabilities: Article 24.</span>
-                            </li>
-                        </ul>
-                        <ul class="space-y-4 text-sm font-light text-gray-600">
-                            <li class="flex items-start">
-                                <i class="fa-solid fa-book text-gray-400 mt-1 mr-3"></i>
-                                <span><strong>World Bank (2022)</strong>. Disability inclusion and accountability framework.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fa-solid fa-book text-gray-400 mt-1 mr-3"></i>
-                                <span><strong>UNICEF (2021)</strong>. Inclusive education guidance.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fa-solid fa-book text-gray-400 mt-1 mr-3"></i>
-                                <span><strong>OECD (2019)</strong>. Inclusive education for diverse societies.</span>
-                            </li>
-                            <li class="flex items-start">
-                                <i class="fa-solid fa-book text-gray-400 mt-1 mr-3"></i>
-                                <span><strong>Hehir, T. (2005)</strong>. Eliminating ableism in policy and practice.</span>
-                            </li>
-                        </ul>
+                    <div class="lg:col-span-2">
+                        <div class="bg-white border border-pearsonLightGrey rounded divide-y divide-gray-100">
+
+                            <!-- Ref 1 -->
+                            <div class="ref-item flex items-start p-4 space-x-4">
+                                <span class="framework-pill bg-teal-50 text-pearsonTeal shrink-0 mt-0.5">UDL</span>
+                                <div>
+                                    <p class="text-sm text-gray-700 font-light leading-snug"><strong class="font-semibold">CAST. (2024).</strong> <i>Universal Design for Learning guidelines.</i> CAST.</p>
+                                </div>
+                            </div>
+
+                            <!-- Ref 2 -->
+                            <div class="ref-item flex items-start p-4 space-x-4">
+                                <span class="framework-pill bg-teal-50 text-pearsonTeal shrink-0 mt-0.5">UDL</span>
+                                <div>
+                                    <p class="text-sm text-gray-700 font-light leading-snug"><strong class="font-semibold">Rose, D. H., & Meyer, A. (2002).</strong> <i>Teaching every student in the digital age: Universal Design for Learning.</i> ASCD.</p>
+                                </div>
+                            </div>
+
+                            <!-- Ref 3 -->
+                            <div class="ref-item flex items-start p-4 space-x-4">
+                                <span class="framework-pill bg-purple-50 text-pearsonPurple shrink-0 mt-0.5">Inklusi</span>
+                                <div>
+                                    <p class="text-sm text-gray-700 font-light leading-snug"><strong class="font-semibold">Booth, T., & Ainscow, M. (2016).</strong> <i>The index for inclusion: A guide to school development led by inclusive values</i> (4th ed.). Index for Inclusion Network.</p>
+                                </div>
+                            </div>
+
+                            <!-- Ref 4 -->
+                            <div class="ref-item flex items-start p-4 space-x-4">
+                                <span class="framework-pill bg-purple-50 text-pearsonPurple shrink-0 mt-0.5">Inklusi</span>
+                                <div>
+                                    <p class="text-sm text-gray-700 font-light leading-snug"><strong class="font-semibold">Centre for Studies on Inclusive Education. (2011).</strong> <i>Index for inclusion: Developing learning and participation in schools.</i> CSIE.</p>
+                                </div>
+                            </div>
+
+                            <!-- Ref 5 -->
+                            <div class="ref-item flex items-start p-4 space-x-4">
+                                <span class="framework-pill bg-purple-50 text-pearsonPurple shrink-0 mt-0.5">Inklusi</span>
+                                <div>
+                                    <p class="text-sm text-gray-700 font-light leading-snug"><strong class="font-semibold">Ainscow, M. (2020).</strong> <i>Promoting inclusion and equity in education: Lessons from international experiences.</i> UNESCO.</p>
+                                </div>
+                            </div>
+
+                            <!-- Ref 6 -->
+                            <div class="ref-item flex items-start p-4 space-x-4">
+                                <span class="framework-pill bg-blue-50 text-blue-600 shrink-0 mt-0.5">Regulasi</span>
+                                <div>
+                                    <p class="text-sm text-gray-700 font-light leading-snug"><strong class="font-semibold">United Nations. (2006).</strong> <i>Convention on the Rights of Persons with Disabilities: Article 24 — Education.</i> United Nations.</p>
+                                </div>
+                            </div>
+
+                            <!-- Ref 7 -->
+                            <div class="ref-item flex items-start p-4 space-x-4">
+                                <span class="framework-pill bg-blue-50 text-blue-600 shrink-0 mt-0.5">Regulasi</span>
+                                <div>
+                                    <p class="text-sm text-gray-700 font-light leading-snug"><strong class="font-semibold">UNESCO. (2020).</strong> <i>Towards inclusion in education: Status, trends and challenges.</i> UNESCO.</p>
+                                </div>
+                            </div>
+
+                            <!-- Ref 8 -->
+                            <div class="ref-item flex items-start p-4 space-x-4">
+                                <span class="framework-pill bg-blue-50 text-blue-600 shrink-0 mt-0.5">Regulasi</span>
+                                <div>
+                                    <p class="text-sm text-gray-700 font-light leading-snug"><strong class="font-semibold">United Nations Children's Fund. (2021).</strong> <i>Inclusive education guidance.</i> UNICEF.</p>
+                                </div>
+                            </div>
+
+                            <!-- Ref 9 -->
+                            <div class="ref-item flex items-start p-4 space-x-4">
+                                <span class="framework-pill bg-blue-50 text-blue-600 shrink-0 mt-0.5">Regulasi</span>
+                                <div>
+                                    <p class="text-sm text-gray-700 font-light leading-snug"><strong class="font-semibold">Organisation for Economic Co-operation and Development. (2019).</strong> <i>Inclusive education for diverse societies.</i> OECD Publishing.</p>
+                                </div>
+                            </div>
+
+                            <!-- Ref 10 -->
+                            <div class="ref-item flex items-start p-4 space-x-4">
+                                <span class="framework-pill bg-blue-50 text-blue-600 shrink-0 mt-0.5">Regulasi</span>
+                                <div>
+                                    <p class="text-sm text-gray-700 font-light leading-snug"><strong class="font-semibold">World Bank. (2022).</strong> <i>Disability inclusion and accountability framework.</i> World Bank.</p>
+                                </div>
+                            </div>
+
+                            <!-- Ref 11 -->
+                            <div class="ref-item flex items-start p-4 space-x-4">
+                                <span class="framework-pill bg-gray-100 text-gray-600 shrink-0 mt-0.5">Pendidikan Khusus</span>
+                                <div>
+                                    <p class="text-sm text-gray-700 font-light leading-snug"><strong class="font-semibold">Hehir, T. (2005).</strong> <i>New directions in special education: Eliminating ableism in policy and practice.</i> Harvard Education Press.</p>
+                                </div>
+                            </div>
+
+                            <!-- Ref 12 -->
+                            <div class="ref-item flex items-start p-4 space-x-4">
+                                <span class="framework-pill bg-gray-100 text-gray-600 shrink-0 mt-0.5">Pendidikan Khusus</span>
+                                <div>
+                                    <p class="text-sm text-gray-700 font-light leading-snug"><strong class="font-semibold">Kauffman, J. M., Hallahan, D. P., & Pullen, P. C. (2018).</strong> <i>Handbook of special education.</i> Routledge.</p>
+                                </div>
+                            </div>
+
+                            <!-- Ref 13 -->
+                            <div class="ref-item flex items-start p-4 space-x-4">
+                                <span class="framework-pill bg-gray-100 text-gray-600 shrink-0 mt-0.5">Pendidikan Khusus</span>
+                                <div>
+                                    <p class="text-sm text-gray-700 font-light leading-snug"><strong class="font-semibold">Florian, L. (2014).</strong> <i>The SAGE handbook of special education</i> (2nd ed.). SAGE Publications.</p>
+                                </div>
+                            </div>
+
+                            <!-- Ref 14 -->
+                            <div class="ref-item flex items-start p-4 space-x-4">
+                                <span class="framework-pill bg-gray-100 text-gray-600 shrink-0 mt-0.5">Pendidikan Khusus</span>
+                                <div>
+                                    <p class="text-sm text-gray-700 font-light leading-snug"><strong class="font-semibold">Mittler, P. (2000).</strong> <i>Working towards inclusive education: Social contexts.</i> David Fulton Publishers.</p>
+                                </div>
+                            </div>
+
+                            <!-- Ref 15 -->
+                            <div class="ref-item flex items-start p-4 space-x-4">
+                                <span class="framework-pill bg-gray-100 text-gray-600 shrink-0 mt-0.5">Pendidikan Khusus</span>
+                                <div>
+                                    <p class="text-sm text-gray-700 font-light leading-snug"><strong class="font-semibold">Sailor, W. (2015).</strong> <i>Advances in schoolwide inclusive school reform.</i> Teachers College Press.</p>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- TAMBAHAN: CTA / CALL TO ACTION STRIP                        -->
+        <!-- ============================================================ -->
+        <div class="bg-pearsonPurple py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                    <h3 class="text-xl font-semibold text-white">Siap memulai asesmen inklusif di daerah Anda?</h3>
+                    <p class="text-purple-200 text-sm font-light mt-1">Akses seluruh modul evaluasi, panduan UDL, dan laporan CRPD dalam satu portal terpadu.</p>
+                </div>
+                <div class="flex space-x-3 shrink-0">
+                    <a href="#" class="bg-white text-pearsonPurple font-semibold px-6 py-3 rounded text-sm hover:bg-gray-100 transition">Masuk Portal</a>
+                    <a href="#" class="border border-white text-white font-semibold px-6 py-3 rounded text-sm hover:bg-white hover:bg-opacity-10 transition">Hubungi Kami</a>
                 </div>
             </div>
         </div>
 
     </main>
 
-    <!-- Footer Ala Pearson -->
+    <!-- Footer -->
     <footer class="bg-pearsonNavy text-white pt-12 pb-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 border-b border-gray-700 pb-8">
