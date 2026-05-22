@@ -192,9 +192,11 @@
                         <button onclick="window.print()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2 px-3 rounded-xl flex items-center gap-1.5 border border-indigo-200 text-xs transition-colors shadow-sm"><i class="ph-bold ph-printer"></i> Cetak PDF</button>
                         <button onclick="exportDataJSON()" class="bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold py-2 px-3 rounded-xl flex items-center gap-1.5 border border-slate-200 text-xs transition-colors shadow-sm"><i class="ph-bold ph-download-simple"></i> Backup (.json)</button>
                         <button onclick="triggerLoadJSON()" class="bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold py-2 px-3 rounded-xl flex items-center gap-1.5 border border-slate-200 text-xs transition-colors shadow-sm"><i class="ph-bold ph-upload-simple"></i> Load</button>
+                        <!-- PASTE KODE INI DI BAWAH TOMBOL LOAD -->
+                        <button onclick="loadSampleData()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2 px-3 rounded-xl flex items-center gap-1.5 border border-indigo-200 text-xs transition-colors shadow-sm"><i class="ph-bold ph-magic-wand"></i> Sample Data</button>
                         
                         <button onclick="submitToGoogleForm()" id="btn-sync-gform" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-xl flex items-center gap-1.5 text-xs transition-colors shadow-md ml-auto lg:ml-2">
-                            <i class="ph-bold ph-paper-plane-tilt"></i> Kirim ke Server GForm
+                            <i class="ph-bold ph-paper-plane-tilt"></i> Kirim ke Server
                         </button>
                         
                         <input type="file" id="load-json-input" accept=".json" class="hidden" onchange="handleLoadJSON(event)">
@@ -251,27 +253,39 @@
         </div>
     </main>
 
-    <!-- ==========================================
-         MODAL PROFIL SEKOLAH / AUDITOR
+<!-- ==========================================
+         MODAL PROFIL SEKOLAH / AUDITOR (DIUPDATE)
          ========================================== -->
     <div id="profile-modal" class="fixed inset-0 bg-slate-900/60 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity no-print">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col transform transition-transform scale-95" id="profile-modal-content">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col transform transition-transform scale-95" id="profile-modal-content">
             <div class="p-5 border-b border-indigo-100 flex justify-between items-center bg-indigo-600 text-white">
-                <h3 class="font-bold flex items-center gap-2"><i class="ph-bold ph-buildings text-xl"></i> Profil Sekolah & Auditor</h3>
+                <h3 class="font-bold flex items-center gap-2"><i class="ph-bold ph-buildings text-xl"></i> Profil & PIC Audit</h3>
                 <button onclick="closeProfileModal()" class="text-indigo-200 hover:text-white"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
-            <div class="p-6 space-y-4">
+            <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
                 <div>
                     <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Nama Sekolah</label>
-                    <input type="text" id="input-sekolah" placeholder="Misal: SDN 1 Nusantara" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-colors">
+                    <input type="text" id="input-sekolah" placeholder="Misal: SMAN 42 JAKARTA" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-colors">
                 </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">NPSN</label>
-                    <input type="number" id="input-npsn" placeholder="12345678" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-colors">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Kabupaten / Kota</label>
+                        <input type="text" id="input-kabupaten" placeholder="Misal: Jakarta Timur" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-colors">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">NPSN</label>
+                        <input type="number" id="input-npsn" placeholder="20103297" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-colors">
+                    </div>
                 </div>
-                <div>
-                    <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Nama Auditor / Penilai</label>
-                    <input type="text" id="input-auditor" placeholder="Misal: Budi Santoso" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-colors">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Nama PIC / Auditor</label>
+                        <input type="text" id="input-auditor" placeholder="Misal: Angga Conni" class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-colors">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Nomor HP</label>
+                        <input type="number" id="input-nohp" placeholder="0812..." class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-colors">
+                    </div>
                 </div>
                 
                 <button onclick="saveProfile()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 mt-2 rounded-xl transition shadow-md">
@@ -281,22 +295,29 @@
         </div>
     </div>
 
-    <!-- Modal Upload Simulasi -->
+        <!-- ==========================================
+         MODAL INPUT LINK BUKTI (GDRIVE)
+         ========================================== -->
     <div id="upload-modal" class="fixed inset-0 bg-slate-900/60 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity no-print">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col transform transition-transform scale-95" id="upload-modal-content">
             <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-indigo-50">
-                <h3 class="font-bold text-indigo-900 flex items-center gap-2"><i class="ph-bold ph-upload-simple"></i> Unggah Bukti</h3>
+                <h3 class="font-bold text-indigo-900 flex items-center gap-2"><i class="ph-bold ph-link"></i> Tautkan Bukti</h3>
                 <button onclick="closeUploadModal()" class="text-slate-400 hover:text-slate-700"><i class="ph-bold ph-x text-lg"></i></button>
             </div>
             <div class="p-6">
                 <p class="text-xs text-slate-500 font-semibold mb-1 uppercase">Indikator:</p>
                 <p id="upload-indicator-name" class="text-sm font-bold text-slate-800 mb-4 leading-tight">-</p>
                 
-                <div class="border-2 border-dashed border-indigo-200 bg-indigo-50/50 rounded-xl p-8 text-center cursor-pointer hover:bg-indigo-50 transition" onclick="simulateUpload()">
-                    <i class="ph-fill ph-file-arrow-up text-4xl text-indigo-400 mb-2"></i>
-                    <p class="text-sm font-bold text-indigo-700">Klik untuk Pilih File</p>
-                    <p class="text-xs text-slate-500 mt-1">PDF, JPG, atau DOCX</p>
+                <div>
+                    <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Link Bukti (Google Drive / Lainnya)</label>
+                    <input type="url" id="input-link-bukti" placeholder="https://drive.google.com/..." class="w-full border border-slate-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500 bg-slate-50 focus:bg-white transition-colors">
                 </div>
+                <p class="text-[10px] text-slate-400 mt-2">*Pastikan akses link Google Drive Anda disetel ke "Siapa saja yang memiliki link" (Anyone with the link).</p>
+                
+                <button onclick="saveLinkBukti()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 mt-4 rounded-xl transition shadow-md flex justify-center items-center gap-2">
+                    <i class="ph-bold ph-floppy-disk"></i> Simpan Tautan
+                </button>
+                
                 <input type="hidden" id="current-upload-id">
             </div>
         </div>
@@ -314,12 +335,30 @@
             { id: 'dim6', title: 'Outcome dan Monitoring', weight: 15, desc: 'Evaluasi dampak, transisi lulusan, dan perbaikan berkelanjutan.', indicators: [{ id: 'd6_1', text: 'Monitoring perkembangan anak', bukti: 'Rapor/Portofolio' }, { id: 'd6_2', text: 'Data kehadiran dan partisipasi', bukti: 'Rekap Absensi' }, { id: 'd6_3', text: 'Data transisi/lulusan', bukti: 'Tracer Study' }, { id: 'd6_4', text: 'Evaluasi program inklusi tahunan', bukti: 'Laporan Evaluasi' }, { id: 'd6_5', text: 'Tindak lanjut perbaikan program', bukti: 'RTL/Program Kerja' }] }
         ];
         const dokumenWajib = ["Visi-misi sekolah", "RKJM dan RKT", "SK Tim Inklusi/ULD", "Kurikulum operasional sekolah", "Modul ajar diferensiatif", "PPI/IEP peserta didik", "SOP anti diskriminasi", "Program BK dan SEL", "Dokumen asesmen peserta didik", "Dokumentasi kegiatan inklusi", "Rekap pelatihan guru", "Data outcome peserta didik", "Laporan evaluasi tahunan", "Bukti aksesibilitas sarana", "MoU kemitraan profesional"];
-        const referensiList = ["Booth, T., & Ainscow, M. (2016). Index for inclusion.", "CAST. (2024). Universal Design for Learning guidelines.", "UNICEF. (2021). Inclusive education guidance."];
+        
+        const referensiList = [
+            { text: "Booth, T., & Ainscow, M. (2016). The index for inclusion: A guide to school development led by inclusive values (4th ed.). Index for Inclusion Network.", url: "https://www.indexforinclusion.org/" },
+            { text: "CAST. (2024). Universal Design for Learning guidelines.", url: "https://udlguidelines.cast.org/" },
+            { text: "United Nations. (2006). Convention on the Rights of Persons with Disabilities: Article 24—Education. United Nations.", url: "https://www.un.org/development/desa/disabilities/convention-on-the-rights-of-persons-with-disabilities/article-24-education.html" },
+            { text: "UNESCO. (2020). Towards inclusion in education: Status, trends and challenges. UNESCO.", url: "https://unesdoc.unesco.org/ark:/48223/pf0000375228" },
+            { text: "David H. Rose, & Anne Meyer. (2002). Teaching every student in the digital age: Universal Design for Learning. ASCD.", url: "https://www.cast.org/products-services/resources/2002/universal-design-learning-udl-teaching-every-student-rose" },
+            { text: "Centre for Studies on Inclusive Education. (2011). Index for inclusion: Developing learning and participation in schools. CSIE.", url: "http://www.csie.org.uk/resources/inclusion-index-explained.shtml" },
+            { text: "Thomas Hehir. (2005). New directions in special education: Eliminating ableism in policy and practice. Harvard Education Press.", url: "https://www.hepg.org/hep-home/books/new-directions-in-special-education" },
+            { text: "James M. Kauffman, Hallahan, D. P., & Pullen, P. C. (2018). Handbook of special education. Routledge.", url: "https://www.routledge.com/Handbook-of-Special-Education/Kauffman-Hallahan-Pullen/p/book/9781138653151" },
+            { text: "Peter Mittler. (2000). Working towards inclusive education: Social contexts. David Fulton Publishers.", url: "https://www.routledge.com/Working-Towards-Inclusive-Education-Social-Contexts/Mittler/p/book/9781853466984" },
+            { text: "United Nations Children's Fund. (2021). Inclusive education guidance. UNICEF.", url: "https://www.unicef.org/education/inclusive-education" },
+            { text: "Mel Ainscow. (2020). Promoting inclusion and equity in education: Lessons from international experiences. UNESCO.", url: "https://unesdoc.unesco.org/ark:/48223/pf0000373656" },
+            { text: "Lani Florian. (2014). The SAGE handbook of special education (2nd ed.). SAGE Publications.", url: "https://us.sagepub.com/en-us/nam/the-sage-handbook-of-special-education/book240166" },
+            { text: "Wayne Sailor. (2015). Advances in schoolwide inclusive school reform. Teachers College Press.", url: "https://www.tcpress.com/advances-in-schoolwide-inclusive-school-reform-9780807756187" },
+            { text: "Organisation for Economic Co-operation and Development. (2019). Inclusive education for diverse societies. OECD Publishing.", url: "https://www.oecd-ilibrary.org/education/inclusive-education-for-diverse-societies_a0b6e8a4-en" },
+            { text: "World Bank. (2022). Disability inclusion and accountability framework. World Bank.", url: "https://documents.worldbank.org/en/publication/documents-reports/documentdetail/099515507152222378/idu0e550e5610ec870428d0859a0f074cb831e5f" }
+        ];
+
 
         // State & Initialization
         let auditData = JSON.parse(localStorage.getItem('auditInklusiData')) || {};
         let uploadedFiles = JSON.parse(localStorage.getItem('auditUploadedFiles')) || {};
-        let schoolProfile = JSON.parse(localStorage.getItem('auditSchoolProfile')) || { nama: '', npsn: '', auditor: '' };
+        let schoolProfile = JSON.parse(localStorage.getItem('auditSchoolProfile')) || { nama: '', kabupaten: '', npsn: '', auditor: '', nohp: '' };
 
         document.addEventListener('DOMContentLoaded', () => {
             renderAuditForm();
@@ -348,12 +387,14 @@
         }
 
         // ==========================================
-        // FITUR PROFIL SEKOLAH
+        // FITUR PROFIL SEKOLAH (DIUPDATE)
         // ==========================================
         function openProfileModal() {
-            document.getElementById('input-sekolah').value = schoolProfile.nama;
-            document.getElementById('input-npsn').value = schoolProfile.npsn;
-            document.getElementById('input-auditor').value = schoolProfile.auditor;
+            document.getElementById('input-sekolah').value = schoolProfile.nama || '';
+            document.getElementById('input-kabupaten').value = schoolProfile.kabupaten || '';
+            document.getElementById('input-npsn').value = schoolProfile.npsn || '';
+            document.getElementById('input-auditor').value = schoolProfile.auditor || '';
+            document.getElementById('input-nohp').value = schoolProfile.nohp || '';
             
             const modal = document.getElementById('profile-modal');
             const content = document.getElementById('profile-modal-content');
@@ -364,14 +405,18 @@
         function closeProfileModal() {
             const modal = document.getElementById('profile-modal');
             const content = document.getElementById('profile-modal-content');
-            modal.classList.remove('opacity-100'); content.classList.remove('scale-100'); content.classList.add('scale-95');
+            modal.classList.remove('opacity-100'); 
+            content.classList.remove('scale-100'); 
+            content.classList.add('scale-95');
             setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
         function saveProfile() {
             schoolProfile.nama = document.getElementById('input-sekolah').value.trim();
+            schoolProfile.kabupaten = document.getElementById('input-kabupaten').value.trim();
             schoolProfile.npsn = document.getElementById('input-npsn').value.trim();
             schoolProfile.auditor = document.getElementById('input-auditor').value.trim();
+            schoolProfile.nohp = document.getElementById('input-nohp').value.trim();
             
             localStorage.setItem('auditSchoolProfile', JSON.stringify(schoolProfile));
             updateProfileUI();
@@ -393,6 +438,7 @@
         // ==========================================
         // FITUR RENDER & KALKULASI
         // ==========================================
+
         function renderAuditForm() {
             const container = document.getElementById('audit-form-container');
             let html = '';
@@ -412,9 +458,29 @@
                 `;
                 dim.indicators.forEach((ind, indIndex) => {
                     const val = auditData[ind.id] || null;
-                    const isUploaded = uploadedFiles[ind.id];
-                    const uploadBtnClass = isUploaded ? 'bg-green-50 text-green-700 border-green-300' : 'bg-white text-slate-600 border-slate-300';
-                    const uploadBtnIcon = isUploaded ? 'ph-check-circle text-green-500' : 'ph-upload-simple';
+                    const savedLink = uploadedFiles[ind.id]; // Ambil URL link dari state
+                    
+                    let actionButtonsHtml = '';
+                    if (savedLink) {
+                        // Jika Link Sudah Ada: Tampilkan tombol BUKA LINK dan EDIT
+                        actionButtonsHtml = `
+                            <div class="flex items-center gap-2 no-print shrink-0">
+                                <a href="${savedLink}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 text-xs font-bold border bg-green-50 text-green-700 border-green-300 hover:bg-green-100 px-3 py-2 rounded-lg transition-colors">
+                                    <i class="ph-bold ph-arrow-square-out text-lg"></i> Buka Link
+                                </a>
+                                <button onclick="openUploadModal('${ind.id}', '${ind.text.replace(/'/g, "\\'")}')" class="flex items-center justify-center w-9 h-9 rounded-lg border border-slate-300 bg-white text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition-colors" title="Edit Link">
+                                    <i class="ph-bold ph-pencil-simple text-lg"></i>
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        // Jika Link Belum Ada: Tampilkan tombol TAUTKAN
+                        actionButtonsHtml = `
+                            <button onclick="openUploadModal('${ind.id}', '${ind.text.replace(/'/g, "\\'")}')" class="no-print shrink-0 flex items-center gap-2 text-xs font-bold border bg-white text-slate-600 border-slate-300 hover:bg-slate-50 px-3 py-2 rounded-lg transition-colors">
+                                <i class="ph-bold ph-link text-lg"></i> <span>Tautkan Bukti</span>
+                            </button>
+                        `;
+                    }
                     
                     html += `
                         <div class="border border-slate-100 bg-slate-50/50 p-4 rounded-xl">
@@ -422,9 +488,7 @@
                                 <div class="flex-1">
                                     <h4 class="font-bold text-slate-800 text-sm">${indIndex + 1}. ${ind.text}</h4>
                                 </div>
-                                <button id="btn-upload-${ind.id}" onclick="openUploadModal('${ind.id}', '${ind.text.replace(/'/g, "\\'")}')" class="no-print shrink-0 flex items-center gap-2 text-xs font-bold border ${uploadBtnClass} px-3 py-2 rounded-lg transition-colors">
-                                    <i class="ph-bold ${uploadBtnIcon} text-lg"></i> <span id="text-upload-${ind.id}">${isUploaded ? 'Dokumen Tersimpan' : 'Upload Bukti'}</span>
-                                </button>
+                                ${actionButtonsHtml}
                             </div>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
                                 ${[1, 2, 3, 4].map(score => `
@@ -450,10 +514,21 @@
         }
 
         function renderReferensi() {
-            document.getElementById('referensi-container').innerHTML = referensiList.map(ref => `
-                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-start gap-3"><i class="ph-fill ph-book-bookmark text-xl text-indigo-400 mt-1 shrink-0"></i><p class="text-xs text-slate-600 leading-relaxed text-justify">${ref}</p></div>
-            `).join('');
-        }
+                    document.getElementById('referensi-container').innerHTML = referensiList.map(ref => `
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-2 hover:border-indigo-300 transition-colors">
+                            <div class="flex items-start gap-3">
+                                <i class="ph-fill ph-book-bookmark text-xl text-indigo-400 mt-1 shrink-0"></i>
+                                <p class="text-xs text-slate-600 leading-relaxed text-justify">${ref.text}</p>
+                            </div>
+                            <!-- Area Tombol Link Asli -->
+                            <div class="ml-8 mt-1 border-t border-slate-100 pt-3">
+                                <a href="${ref.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-[10px] font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors border border-indigo-100 shadow-sm">
+                                    <i class="ph-bold ph-link text-sm"></i> Buka Link Referensi Asli
+                                </a>
+                            </div>
+                        </div>
+                    `).join('');
+                }
 
         function toggleAccordion(id) {
             const content = document.getElementById(id);
@@ -521,11 +596,11 @@
         }
 
         // ==========================================
-        // KIRIM KE GOOGLE FORM
+        // KIRIM KE GOOGLE FORM (MAPPING FIX)
         // ==========================================
         function submitToGoogleForm() {
-            if (!schoolProfile.nama || !schoolProfile.npsn) {
-                alert("Silakan lengkapi Profil Sekolah terlebih dahulu sebelum mengirim data.");
+            if (!schoolProfile.nama || !schoolProfile.npsn || !schoolProfile.auditor) {
+                alert("Silakan lengkapi Profil Sekolah (termasuk Nama PIC) terlebih dahulu sebelum mengirim data.");
                 openProfileModal();
                 return;
             }
@@ -537,30 +612,36 @@
             const skorAkhir = document.getElementById('dash-score').innerText;
             const kategori = document.getElementById('dash-status-text').innerText;
             
-            // Kompres payload JSON (Jika perlu disimpan murni ke database spreadsheet)
-            const payloadData = { auditData, uploadedFiles };
+            // Masukkan Skor dan Kategori ke dalam JSON karena di Spreadsheet tidak ada kolom khusus skor
+            const payloadData = { 
+                skorTotal: skorAkhir, 
+                kategoriInklusi: kategori, 
+                auditData, 
+                uploadedFiles 
+            };
+            
             let stringPayload = JSON.stringify(payloadData);
-            if(stringPayload.length > 20000) stringPayload = stringPayload.substring(0, 20000); // Mencegah payload terlalu berat
+            if(stringPayload.length > 20000) stringPayload = stringPayload.substring(0, 20000); 
 
+            // MAPPING YANG BENAR SESUAI KOLOM SPREADSHEET
             const formData = new URLSearchParams();
-            formData.append('entry.476029109', schoolProfile.nama);
-            formData.append('entry.877305655', schoolProfile.auditor);
-            formData.append('entry.454004917', schoolProfile.npsn);
-            formData.append('entry.1821954544', skorAkhir);
-            formData.append('entry.1266935825', kategori);
-            formData.append('entry.1992810689', stringPayload);
+            formData.append('entry.476029109', schoolProfile.nama);        // Kolom B: Nama Sekolah
+            formData.append('entry.877305655', schoolProfile.kabupaten);   // Kolom C: Kabupaten / Kota
+            formData.append('entry.454004917', schoolProfile.npsn);        // Kolom D: NPSN
+            formData.append('entry.1821954544', schoolProfile.auditor);    // Kolom E: Nama PIC
+            formData.append('entry.1266935825', schoolProfile.nohp);       // Kolom F: Nomor HP
+            formData.append('entry.1992810689', stringPayload);            // Kolom G: JSON PAYLOAD
 
-            // URL Google Form diubah dari /viewform menjadi /formResponse
             const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSclg_rvLtFMuqcnqzUNCGbZm37_9M2m3S-3RCDNjRSRCcdQjQ/formResponse';
 
             fetch(formUrl, {
                 method: 'POST',
-                mode: 'no-cors', // Bebas dari block browser CORS
+                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: formData.toString()
             })
             .then(() => {
-                alert("✅ Data berhasil dikirim ke server pusat!");
+                alert("✅ Data berhasil dikirim ke server pusat!\n(Cek Spreadsheet Anda, datanya sudah sinkron sesuai kolom)");
             })
             .catch((error) => {
                 alert("❌ Gagal mengirim data. Pastikan perangkat Anda terhubung ke internet.");
@@ -613,21 +694,94 @@
             reader.readAsText(file); event.target.value = '';
         }
 
-        // Modal Upload Simulator
-        function openUploadModal(id, name) { document.getElementById('current-upload-id').value = id; document.getElementById('upload-indicator-name').innerText = name; const m = document.getElementById('upload-modal'); const c = document.getElementById('upload-modal-content'); m.classList.remove('hidden'); setTimeout(() => { m.classList.add('opacity-100'); c.classList.remove('scale-95'); c.classList.add('scale-100'); }, 10); }
-        function closeUploadModal() { const m = document.getElementById('upload-modal'); const c = document.getElementById('upload-modal-content'); m.classList.remove('opacity-100'); c.classList.remove('scale-100'); c.classList.add('scale-95'); setTimeout(() => { m.classList.add('hidden'); }, 300); }
-        function simulateUpload() {
-            const id = document.getElementById('current-upload-id').value;
-            document.querySelector('#upload-modal .text-indigo-700').innerText = "Mengunggah..."; document.querySelector('#upload-modal .ph-file-arrow-up').className = "ph-bold ph-spinner animate-spin text-4xl text-indigo-400 mb-2";
-            setTimeout(() => {
-                uploadedFiles[id] = true; localStorage.setItem('auditUploadedFiles', JSON.stringify(uploadedFiles));
-                const btn = document.getElementById('btn-upload-' + id);
-                btn.className = "no-print shrink-0 flex items-center gap-2 text-xs font-bold border px-3 py-2 rounded-lg transition-colors bg-green-50 text-green-700 border-green-300";
-                btn.innerHTML = `<i class="ph-bold ph-check-circle text-green-500 text-lg"></i> <span>Dokumen Tersimpan</span>`;
-                document.querySelector('#upload-modal .text-indigo-700').innerText = "Klik untuk Pilih File"; document.querySelector('#upload-modal .ph-spinner').className = "ph-fill ph-file-arrow-up text-4xl text-indigo-400 mb-2";
-                closeUploadModal();
-            }, 800);
+        // ==========================================
+        // LOGIKA MODAL LINK BUKTI (BARU)
+        // ==========================================
+        function openUploadModal(id, name) { 
+            document.getElementById('current-upload-id').value = id; 
+            document.getElementById('upload-indicator-name').innerText = name; 
+            
+            // Masukkan link lama ke input box jika sebelumnya sudah pernah diisi
+            document.getElementById('input-link-bukti').value = uploadedFiles[id] || '';
+
+            const m = document.getElementById('upload-modal'); 
+            const c = document.getElementById('upload-modal-content'); 
+            m.classList.remove('hidden'); 
+            setTimeout(() => { m.classList.add('opacity-100'); c.classList.remove('scale-95'); c.classList.add('scale-100'); }, 10); 
         }
+
+        function closeUploadModal() { 
+            const m = document.getElementById('upload-modal'); 
+            const c = document.getElementById('upload-modal-content'); 
+            m.classList.remove('opacity-100'); c.classList.remove('scale-100'); c.classList.add('scale-95'); 
+            setTimeout(() => { m.classList.add('hidden'); }, 300); 
+        }
+
+        function saveLinkBukti() {
+            const id = document.getElementById('current-upload-id').value;
+            const linkUrl = document.getElementById('input-link-bukti').value.trim();
+
+            if (linkUrl === "") {
+                // Jika dikosongkan, hapus data link tersebut
+                delete uploadedFiles[id];
+            } else {
+                // Simpan URL
+                uploadedFiles[id] = linkUrl;
+            }
+
+            localStorage.setItem('auditUploadedFiles', JSON.stringify(uploadedFiles));
+            renderAuditForm(); // Render ulang tampilan form
+            closeUploadModal(); // Tutup modal
+        }
+
+        // ==========================================
+        // FITUR LOAD SAMPLE DATA (REAL DATA DEMO)
+        // ==========================================
+        function loadSampleData() {
+            if(!confirm("🧪 Anda akan memuat Data Sampel (Kategori: Inklusif Berkembang).\nData saat ini akan ditimpa.\n\nLanjutkan?")) return;
+
+            // 1. Mock Data Profil
+            schoolProfile = { 
+                nama: 'SMAN 1 Nusantara (Sampel)', 
+                kabupaten: 'Jakarta Selatan', 
+                npsn: '12345678', 
+                auditor: 'Budi (Sampel)', 
+                nohp: '08123456789' 
+            };
+
+            // 2. Mock Data Audit (Kombinasi skor 1-4)
+            auditData = {
+                "d1_1": "4", "d1_2": "3", "d1_3": "3", "d1_4": "2", "d1_5": "2", // Kebijakan
+                "d2_1": "3", "d2_2": "3", "d2_3": "4", "d2_4": "3", "d2_5": "2", // Budaya
+                "d3_1": "2", "d3_2": "3", "d3_3": "2", "d3_4": "3", "d3_5": "1", "d3_6": "3", "d3_7": "2", // Pembelajaran
+                "d4_1": "4", "d4_2": "3", "d4_3": "2", "d4_4": "1", "d4_5": "3", // Dukungan
+                "d5_1": "4", "d5_2": "2", "d5_3": "2", "d5_4": "3", // Partisipasi
+                "d6_1": "3", "d6_2": "4", "d6_3": "1", "d6_4": "2", "d6_5": "2"  // Outcome
+            };
+
+            // 3. Mock Tautan Bukti (Google Drive Link)
+            // Sistem akan otomatis menaruh link pura-pura untuk setiap indikator yang nilainya >= 3
+            uploadedFiles = {};
+            for (let key in auditData) {
+                if (parseInt(auditData[key]) >= 3) {
+                    uploadedFiles[key] = "https://drive.google.com/file/d/contoh-dokumen-" + key + "/view";
+                }
+            }
+
+            // 4. Simpan Ke Memory Browser
+            localStorage.setItem('auditSchoolProfile', JSON.stringify(schoolProfile));
+            localStorage.setItem('auditInklusiData', JSON.stringify(auditData));
+            localStorage.setItem('auditUploadedFiles', JSON.stringify(uploadedFiles));
+
+            // 5. Render Ulang Semua UI
+            updateProfileUI();
+            renderAuditForm();
+            calculateAndUpdateDashboard();
+            
+            alert("✅ Data sampel berhasil dimuat!\nSilakan cek Dashboard dan cobalah klik tombol 'Buka Link' di menu Triase Audit.");
+        }
+
+
     </script>
 </body>
 </html>
